@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# Preview whatever fzf is currently highlighting: directory tree, syntax-
+# highlighted text, or a summary for binaries.
+target="${1:-}"
+[[ -n "$target" && -e "$target" ]] || exit 0
+
+if [[ -d "$target" ]]; then
+  if command -v eza >/dev/null; then
+    eza --tree --level=2 --icons=always --colour=always --group-directories-first -- "$target"
+  else
+    ls -1 -- "$target"
+  fi
+  exit 0
+fi
+
+BAT="$(command -v batcat || command -v bat || true)"
+mime="$(file -bL --mime-type -- "$target" 2>/dev/null || echo unknown)"
+
+case "$mime" in
+  text/*|application/json|application/javascript|application/xml|*+xml|*+json|inode/x-empty)
+    if [[ -n "$BAT" ]]; then
+      "$BAT" --style=numbers --color=always --line-range=:300 -- "$target"
+    else
+      head -n 300 -- "$target"
+    fi
+    ;;
+  image/*)
+    printf '  image  %s\n\n' "$target"
+    file -bL -- "$target"
+    ;;
+  *)
+    printf '  binary  %s\n\n' "$target"
+    file -bL -- "$target"
+    printf '\n'
+    ls -lh -- "$target" | awk '{print "size: "$5}'
+    ;;
+esac

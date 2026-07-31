@@ -1,0 +1,192 @@
+# Catppuccin Mocha · https://starship.rs/config
+"$schema" = 'https://starship.rs/config-schema.json'
+
+palette = "catppuccin_mocha"
+add_newline = true
+command_timeout = 1000
+
+# Full powerline — every segment is a filled coloured block:
+#
+#    jonnyb  ~/projects/app   main !2   20.11.0  󰅐 14:32  ❯❯❯
+#
+# The arrow separator lives *inside* each module's own format string and is
+# coloured fg:prev_bg, so it inherits whatever block rendered before it. That
+# is what makes this safe: when a module has nothing to show (not in a repo, no
+# node project) it vanishes entirely rather than leaving an orphaned arrow, and
+# the next block's arrow still picks up the correct colour.
+format = """
+[](fg:red)\
+$os\
+$username\
+$directory\
+$git_branch\
+$git_status\
+$nodejs\
+$python\
+$rust\
+$golang\
+$java\
+$docker_context\
+$jobs\
+$cmd_duration\
+$status\
+$time\
+[](fg:prev_bg)\
+$character"""
+
+[os]
+disabled = false
+style = "bg:red fg:crust"
+format = '[ $symbol ]($style)'
+
+[os.symbols]
+Ubuntu  = ""
+Debian  = ""
+Arch    = ""
+Fedora  = ""
+Alpine  = ""
+Linux   = ""
+Windows = ""
+Macos   = ""
+
+[username]
+show_always = true
+style_user = "bg:red fg:crust bold"
+style_root = "bg:red fg:crust bold"
+format = '[$user ]($style)'
+
+[directory]
+style = "bg:peach fg:crust bold"
+format = '[](fg:prev_bg bg:peach)[ $path ]($style)'
+truncation_length = 3
+truncation_symbol = "…/"
+truncate_to_repo = true          # inside a repo, show the path from its root
+read_only = " 󰌾"
+read_only_style = "bg:peach fg:crust"
+
+[directory.substitutions]
+"Documents" = "󰈙 "
+"Downloads" = " "
+"Music" = "󰝚 "
+"Pictures" = " "
+"Developer" = "󰲋 "
+"projects" = " "
+
+# Triple chevron, fading from dark to bright so it reads as a gradient.
+# Greens when the last command succeeded, reds when it failed.
+[character]
+success_symbol = "[ ❯](bold green_deep)[❯](bold green_mid)[❯](bold green)"
+error_symbol   = "[ ❯](bold red_deep)[❯](bold red_mid)[❯](bold red)"
+vimcmd_symbol  = "[ ❮❮❮](bold lavender)"
+
+# git_branch opens the green block; git_status continues inside the same block,
+# so there is no arrow between them.
+[git_branch]
+symbol = " "
+style = "bg:green fg:crust bold"
+format = '[](fg:prev_bg bg:green)[ $symbol$branch ]($style)'
+
+[git_status]
+style = "bg:green fg:crust"
+format = '[$all_status$ahead_behind ]($style)'
+conflicted = "= "
+ahead = "⇡${count} "
+behind = "⇣${count} "
+diverged = "⇕⇡${ahead_count}⇣${behind_count} "
+untracked = "? "
+stashed = "$ "
+modified = "! "
+staged = "+ "
+renamed = "» "
+deleted = "✘ "
+
+[cmd_duration]
+min_time = 2000
+style = "bg:surface1 fg:subtext1"
+format = '[](fg:prev_bg bg:surface1)[ 󱦟 $duration ]($style)'
+
+# Shows the exit code when a command fails, e.g. ✘ 127 for "not found"
+[status]
+disabled = false
+style = "bg:maroon fg:crust bold"
+symbol = "✘ "
+map_symbol = true
+format = '[](fg:prev_bg bg:maroon)[ $symbol$status ]($style)'
+
+# Background jobs, e.g. after Ctrl+Z
+[jobs]
+symbol = " "
+style = "bg:mauve fg:crust bold"
+number_threshold = 1
+format = '[](fg:prev_bg bg:mauve)[ $symbol$number ]($style)'
+
+# Always rendered, so it reliably closes the block chain
+[time]
+disabled = false
+time_format = "%R"
+style = "bg:lavender fg:crust bold"
+format = '[](fg:prev_bg bg:lavender)[ 󰅐 $time ]($style)'
+
+[nodejs]
+symbol = ""
+style = "bg:teal fg:crust"
+format = '[](fg:prev_bg bg:teal)[ $symbol $version ]($style)'
+
+[python]
+symbol = ""
+style = "bg:yellow fg:crust"
+format = '[](fg:prev_bg bg:yellow)[ $symbol $version(\($virtualenv\)) ]($style)'
+
+[rust]
+symbol = ""
+style = "bg:flamingo fg:crust"
+format = '[](fg:prev_bg bg:flamingo)[ $symbol $version ]($style)'
+
+[golang]
+symbol = ""
+style = "bg:sky fg:crust"
+format = '[](fg:prev_bg bg:sky)[ $symbol $version ]($style)'
+
+[java]
+symbol = ""
+style = "bg:rosewater fg:crust"
+format = '[](fg:prev_bg bg:rosewater)[ $symbol $version ]($style)'
+
+[docker_context]
+symbol = ""
+style = "bg:sapphire fg:crust"
+format = '[](fg:prev_bg bg:sapphire)[ $symbol $context ]($style)'
+only_with_files = true
+
+[palettes.catppuccin_mocha]
+rosewater = "#f5e0dc"
+flamingo  = "#f2cdcd"
+pink      = "#f5c2e7"
+mauve     = "#cba6f7"
+red       = "#f38ba8"
+maroon    = "#eba0ac"
+peach     = "#fab387"
+yellow    = "#f9e2af"
+green     = "#a6e3a1"
+teal      = "#94e2d5"
+sky       = "#89dceb"
+sapphire  = "#74c7ec"
+blue      = "#89b4fa"
+lavender  = "#b4befe"
+text      = "#cdd6f4"
+subtext1  = "#bac2de"
+subtext0  = "#a6adc8"
+overlay2  = "#9399b2"
+overlay1  = "#7f849c"
+overlay0  = "#6c7086"
+surface2  = "#585b70"
+surface1  = "#45475a"
+surface0  = "#313244"
+base      = "#1e1e2e"
+mantle    = "#181825"
+crust     = "#11111b"
+# extra shades, only used for the triple-chevron gradient
+green_deep = "#3d6b4a"
+green_mid  = "#6fc47f"
+red_deep   = "#7a3b4a"
+red_mid    = "#d96a86"
