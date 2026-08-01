@@ -1,0 +1,17 @@
+# OS noise
+.DS_Store
+Thumbs.db
+
+# Editor noise
+*.swp
+*.swo
+*~
+.netrwhist
+
+# Local, machine-specific overrides (never committed)
+*.local
+zshrc.local
+
+# Neovim runtime state (generated, not config)
+nvim/lazy-lock.json.bak
+nvim/.luarc.json

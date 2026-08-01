@@ -1,0 +1,146 @@
+# ─────────────────────────────────────────────────────────────
+#  ~/.zshrc  ·  managed by dotfiles
+# ─────────────────────────────────────────────────────────────
+
+# ── Homebrew (Apple Silicon / Intel / Linuxbrew) ─────────────
+for _brew in /opt/homebrew/bin/brew /usr/local/bin/brew /home/linuxbrew/.linuxbrew/bin/brew; do
+  if [[ -x "$_brew" ]]; then eval "$("$_brew" shellenv)"; break; fi
+done
+unset _brew
+
+export DOTFILES="${DOTFILES:-$HOME/.dotfiles}"
+export ZDOTDIR_CONFIG="$HOME/.config/zsh"
+
+# ── Environment ──────────────────────────────────────────────
+export EDITOR="nvim"
+export VISUAL="nvim"
+export PAGER="less"
+export LESS="-R"
+export MANPAGER="nvim +Man!"
+export LANG="en_US.UTF-8"
+
+typeset -U path PATH
+path=("$HOME/.local/bin" $path)
+export PATH
+
+# ── History ──────────────────────────────────────────────────
+HISTFILE="$HOME/.zsh_history"
+HISTSIZE=100000
+SAVEHIST=100000
+setopt EXTENDED_HISTORY          # timestamp entries
+setopt SHARE_HISTORY             # share across sessions
+setopt HIST_IGNORE_ALL_DUPS      # no duplicates
+setopt HIST_IGNORE_SPACE         # ' cmd' is not recorded
+setopt HIST_REDUCE_BLANKS
+setopt HIST_VERIFY               # expand !! before running
+
+# ── Shell behaviour ──────────────────────────────────────────
+setopt AUTO_CD                   # `foo` -> `cd foo`
+setopt AUTO_PUSHD PUSHD_IGNORE_DUPS PUSHD_SILENT
+setopt EXTENDED_GLOB
+setopt INTERACTIVE_COMMENTS
+setopt NO_BEEP
+setopt PROMPT_SUBST
+
+# ── Completion ───────────────────────────────────────────────
+if type brew &>/dev/null; then
+  fpath=("$(brew --prefix)/share/zsh/site-functions" $fpath)
+fi
+autoload -Uz compinit
+# Rebuild the completion dump at most once a day; otherwise load it as-is.
+# (Array assignment is what actually expands the glob qualifiers.)
+_zcompdump_fresh=(${ZDOTDIR:-$HOME}/.zcompdump(Nm-1))
+if (( ${#_zcompdump_fresh} )); then
+  compinit -C            # dump is < 1 day old: skip the security check
+else
+  compinit               # rebuild
+fi
+unset _zcompdump_fresh
+
+zstyle ':completion:*' menu select
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z-_}={A-Za-z_-}' 'r:|=*' 'l:|=* r:|=*'
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+zstyle ':completion:*' group-name ''
+zstyle ':completion:*:descriptions' format '%F{yellow}── %d ──%f'
+zstyle ':completion:*:warnings' format '%F{red}no matches%f'
+zstyle ':completion:*' use-cache on
+zstyle ':completion:*' cache-path "$HOME/.cache/zsh/zcompcache"
+
+# ── Keybindings (emacs mode + sane extras) ───────────────────
+bindkey -e
+bindkey '^[[A' history-search-backward     # Up   -> prefix search
+bindkey '^[[B' history-search-forward      # Down -> prefix search
+bindkey '^[[1;5C' forward-word             # Ctrl+Right
+bindkey '^[[1;5D' backward-word            # Ctrl+Left
+bindkey '^[[3~' delete-char
+
+# edit the current command line in $EDITOR with Ctrl+X Ctrl+E
+autoload -Uz edit-command-line
+zle -N edit-command-line
+bindkey '^X^E' edit-command-line
+
+# ── Plugins ──────────────────────────────────────────────────
+_brew_prefix="$(brew --prefix 2>/dev/null)"
+ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=#665c54"
+ZSH_AUTOSUGGEST_STRATEGY=(history completion)
+[[ -f "$_brew_prefix/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]] \
+  && source "$_brew_prefix/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
+# Ctrl+Space accepts the current suggestion (widget only exists once loaded)
+(( $+widgets[autosuggest-accept] )) && bindkey '^ ' autosuggest-accept
+
+# ── Aliases & functions ──────────────────────────────────────
+[[ -f "$ZDOTDIR_CONFIG/aliases.zsh" ]]   && source "$ZDOTDIR_CONFIG/aliases.zsh"
+[[ -f "$ZDOTDIR_CONFIG/functions.zsh" ]] && source "$ZDOTDIR_CONFIG/functions.zsh"
+
+# ── fzf (gruvbox themed) ─────────────────────────────────────
+export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
+export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+export FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude .git'
+export FZF_DEFAULT_OPTS="
+  --height 60% --layout=reverse --border=rounded --info=inline
+  --prompt='  ' --pointer='' --marker=''
+  --color=bg+:#3c3836,bg:#1d2021,spinner:#fe8019,hl:#928374
+  --color=fg:#ebdbb2,header:#928374,info:#8ec07c,pointer:#fe8019
+  --color=marker:#fe8019,fg+:#ebdbb2,prompt:#fabd2f,hl+:#fb4934
+  --color=border:#665c54"
+export FZF_CTRL_T_OPTS="--preview 'bat --style=numbers --color=always --line-range :300 {}'"
+export FZF_ALT_C_OPTS="--preview 'eza --tree --level=2 --color=always {}'"
+if command -v fzf &>/dev/null; then
+  # fzf >= 0.48 ships shell integration via `fzf --zsh`; older versions ship files
+  if _fzf_init="$(fzf --zsh 2>/dev/null)" && [[ -n "$_fzf_init" ]]; then
+    eval "$_fzf_init"
+  else
+    [[ -f "$_brew_prefix/opt/fzf/shell/completion.zsh" ]] && source "$_brew_prefix/opt/fzf/shell/completion.zsh"
+    [[ -f "$_brew_prefix/opt/fzf/shell/key-bindings.zsh" ]] && source "$_brew_prefix/opt/fzf/shell/key-bindings.zsh"
+  fi
+  unset _fzf_init
+fi
+
+# ── zoxide (smarter cd) ──────────────────────────────────────
+command -v zoxide &>/dev/null && eval "$(zoxide init zsh --cmd cd)"
+
+# ── Local, machine-specific overrides (not in git) ───────────
+[[ -f "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"
+
+# ── Prompt ───────────────────────────────────────────────────
+export STARSHIP_CONFIG="$HOME/.config/starship.toml"
+command -v starship &>/dev/null && eval "$(starship init zsh)"
+
+# ── Syntax highlighting MUST be sourced last ─────────────────
+if [[ -f "$_brew_prefix/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]]; then
+  source "$_brew_prefix/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+  ZSH_HIGHLIGHT_HIGHLIGHTERS=(main brackets)
+  typeset -gA ZSH_HIGHLIGHT_STYLES
+  ZSH_HIGHLIGHT_STYLES[command]='fg=#b8bb26,bold'
+  ZSH_HIGHLIGHT_STYLES[builtin]='fg=#b8bb26,bold'
+  ZSH_HIGHLIGHT_STYLES[function]='fg=#b8bb26,bold'
+  ZSH_HIGHLIGHT_STYLES[alias]='fg=#8ec07c,bold'
+  ZSH_HIGHLIGHT_STYLES[precommand]='fg=#8ec07c,italic'
+  ZSH_HIGHLIGHT_STYLES[path]='fg=#ebdbb2,underline'
+  ZSH_HIGHLIGHT_STYLES[single-quoted-argument]='fg=#fabd2f'
+  ZSH_HIGHLIGHT_STYLES[double-quoted-argument]='fg=#fabd2f'
+  ZSH_HIGHLIGHT_STYLES[unknown-token]='fg=#fb4934,bold'
+  ZSH_HIGHLIGHT_STYLES[comment]='fg=#928374,italic'
+  ZSH_HIGHLIGHT_STYLES[redirection]='fg=#d3869b'
+fi
+unset _brew_prefix
