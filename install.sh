@@ -168,9 +168,13 @@ link() {
       read -r reply
       [[ "$reply" =~ ^[Nn]$ ]] && { skip "kept     ${dest/#$HOME/\~}"; return 0; }
     fi
-    run mkdir -p "$BACKUP_DIR"
-    run mv "$dest" "$BACKUP_DIR/$(basename "$dest")"
-    warn "backed up ${dest/#$HOME/\~} → ${BACKUP_DIR/#$HOME/\~}/"
+    # Mirror the path under $HOME so same-named files (ghostty/config and
+    # bat/config, say) can't clobber each other inside the backup.
+    local rel="${dest#"$HOME"/}"
+    rel="${rel#/}"
+    run mkdir -p "$BACKUP_DIR/$(dirname "$rel")"
+    run mv "$dest" "$BACKUP_DIR/$rel"
+    warn "backed up ${dest/#$HOME/\~} → ${BACKUP_DIR/#$HOME/\~}/$rel"
   fi
 
   run ln -sfn "$src" "$dest"
