@@ -12,8 +12,13 @@ export DOTFILES="${DOTFILES:-$HOME/.dotfiles}"
 export ZDOTDIR_CONFIG="$HOME/.config/zsh"
 
 # ── Environment ──────────────────────────────────────────────
-export EDITOR="vim"
-export VISUAL="vim"
+# nvim comes from the Brewfile, but fall back to vim so a machine
+# installed with --no-brew still gets a working editor.
+if command -v nvim >/dev/null 2>&1; then
+  export EDITOR="nvim" VISUAL="nvim"
+else
+  export EDITOR="vim" VISUAL="vim"
+fi
 export PAGER="less"
 export LESS="-R"
 export LANG="en_US.UTF-8"

@@ -55,8 +55,8 @@ alias gst='git stash'
 alias gstp='git stash pop'
 
 # ── Editor ───────────────────────────────────────────────────
-alias v='vim'
-alias nv='vim'
+alias v='nvim'
+alias nv='nvim'
 
 # ── Dotfiles ─────────────────────────────────────────────────
 alias dot='cd "$DOTFILES"'
@@ -65,6 +65,7 @@ alias reload='exec zsh'
 alias zshconf='$EDITOR "$DOTFILES/zsh/zshrc"'
 alias ghosttyconf='$EDITOR "$DOTFILES/ghostty/config"'
 alias starconf='$EDITOR "$DOTFILES/starship/starship.toml"'
+alias nvimconf='$EDITOR "$DOTFILES/nvim"'
 
 # ── Misc quality of life ─────────────────────────────────────
 alias grep='grep --color=auto'

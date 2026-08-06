@@ -1,12 +1,13 @@
 # dotfiles
 
-Ghostty · zsh · Starship — one Gruvbox Dark Hard palette across the whole terminal, powerline everywhere.
+Ghostty · zsh · Starship · Neovim — one Gruvbox Dark Hard palette across the whole terminal, powerline everywhere.
 
 ```
 ┌──────────────────────────────────────────────────────────┐
 │  Ghostty        gruvbox palette, JetBrainsMono Nerd Font │
 │  zsh            history, completion, syntax highlighting │
 │  Starship       two-line powerline prompt                │
+│  Neovim         lazy.nvim, gruvbox, matching statusline  │
 │  eza bat fd rg fzf zoxide   themed to match              │
 └──────────────────────────────────────────────────────────┘
 ```
@@ -42,6 +43,7 @@ Everything is symlinked, so editing the installed path edits the repo.
 | `starship/starship.toml` | `~/.config/starship.toml` |
 | `ghostty/config` | `~/.config/ghostty/config` |
 | `bat/config` | `~/.config/bat/config` |
+| `nvim/` | `~/.config/nvim` |
 
 Anything already at one of those paths is moved to `~/.dotfiles-backup/<timestamp>/` first, keeping its position under `$HOME` — so `ghostty/config` and `bat/config` land in separate subdirectories rather than overwriting each other.
 
@@ -84,6 +86,26 @@ Commit and push with `dotpush "message"`.
 
 Handy functions: `mkcd`, `extract`, `ff` (fuzzy open in editor), `fkill`, `gcob` (fuzzy branch checkout), `up 3`, `dotpush`.
 
+### Neovim
+
+Leader is `Space`.
+
+| Keys | Action |
+| --- | --- |
+| `<leader>w` / `<leader>q` / `<leader>Q` | Write / quit / quit all |
+| `<leader>e` | File browser (netrw) |
+| `<leader>l` | `:Lazy` — plugin manager |
+| `Ctrl+H/J/K/L` | Move between splits |
+| `<leader>sv` / `<leader>sh` | Split right / down |
+| `<leader>sc` / `<leader>s=` | Close split / equalise |
+| `Ctrl+`arrows | Resize split |
+| `⇧H` / `⇧L` | Previous / next buffer |
+| `<leader>bd` | Delete buffer |
+| `J` / `K` (visual) | Move the selection up/down |
+| `Esc` | Clear search highlight |
+
+Splits and their bindings deliberately mirror Ghostty's, so `⌘D` outside nvim and `<leader>sv` inside it do the same thing.
+
 ## The palette
 
 Gruvbox Dark Hard, used identically by Ghostty, Starship, fzf, bat and zsh syntax highlighting.
@@ -100,10 +122,25 @@ Gruvbox Dark Hard, used identically by Ghostty, Starship, fzf, bat and zsh synta
 
 - **Machine-specific shell config** — `~/.zshrc.local`, sourced last, git-ignored
 - **Transparency** — `ghostty/config`, `background-opacity`
-- **Editor** — `EDITOR`/`VISUAL` in `zsh/zshrc`, currently `vim`
+- **Editor** — `EDITOR`/`VISUAL` in `zsh/zshrc`, `nvim` when it's installed, `vim` otherwise
 - **Adding a config** — drop the file in the repo and add one `src:dest` line to the `LINKS` array at the top of `install.sh`
+- **Adding a Neovim plugin** — create `nvim/lua/plugins/<name>.lua` returning a lazy.nvim spec table. It's picked up automatically by the `{ import = "plugins" }` spec; no other file needs editing. `nvim/lazy-lock.json` pins the versions and is committed.
+
+### What's in the Neovim config
+
+Deliberately small — options, keymaps, a colourscheme and a statusline, with lazy.nvim ready for whatever comes next. No LSP, treesitter or fuzzy finder yet.
+
+```
+nvim/
+├── init.lua
+├── lua/config/{options,keymaps,autocmds,lazy}.lua
+└── lua/plugins/{colorscheme,lualine}.lua
+```
+
+The lualine theme is written from `starship.toml`'s palette rather than lualine's bundled gruvbox — same separator glyphs, same colours, so the prompt and the statusline read as one thing.
 
 ## Requirements
 
 - macOS or Linux
+- Neovim ≥ 0.11 (`vim.hl.on_yank`, `vim.o.winborder`) — the Brewfile installs it
 - A terminal using JetBrainsMono Nerd Font — Ghostty is configured for it, but set it in any other terminal you use or the powerline separators will show as boxes

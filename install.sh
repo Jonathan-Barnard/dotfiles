@@ -23,6 +23,7 @@ LINKS=(
   "starship/starship.toml:$CONFIG_HOME/starship.toml"
   "ghostty/config:$CONFIG_HOME/ghostty/config"
   "bat/config:$CONFIG_HOME/bat/config"
+  "nvim:$CONFIG_HOME/nvim"
 )
 
 # ── Pretty output (gruvbox-ish) ──────────────────────────────
@@ -228,7 +229,7 @@ set_default_shell() {
 # ── Post-install checks ──────────────────────────────────────
 doctor() {
   local missing=() tool
-  for tool in zsh starship eza bat fd rg fzf zoxide git; do
+  for tool in zsh starship nvim eza bat fd rg fzf zoxide git; do
     command -v "$tool" >/dev/null 2>&1 || missing+=("$tool")
   done
 
@@ -255,7 +256,7 @@ doctor() {
 
 # ── Main ─────────────────────────────────────────────────────
 main() {
-  printf '\n%s%sdotfiles%s %s· ghostty · zsh · starship · gruvbox%s\n' \
+  printf '\n%s%sdotfiles%s %s· ghostty · zsh · starship · nvim · gruvbox%s\n' \
     "$C_BOLD" "$C_ORANGE" "$C_RESET" "$C_DIM" "$C_RESET"
   [[ $DRY_RUN -eq 1 ]] && warn "DRY RUN — nothing will be modified"
   info "Platform: $PLATFORM"
@@ -285,6 +286,8 @@ main() {
   ${C_AQUA}Next steps${C_RESET}
     1. Quit and reopen Ghostty (or press ⌘⇧, to reload its config)
     2. Open a new terminal — the powerline prompt should appear
+    3. Run nvim — the first launch bootstraps lazy.nvim and installs
+       its plugins, then you're done
 
   ${C_DIM}Backups (if any): $(tilde "$BACKUP_DIR")${C_RESET}
   ${C_DIM}Machine-specific overrides go in ~/.zshrc.local (git-ignored)${C_RESET}

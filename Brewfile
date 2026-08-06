@@ -9,6 +9,7 @@
 # ── Core ─────────────────────────────────────────────────────
 brew "starship"
 brew "git"
+brew "neovim"
 
 # ── Zsh plugins ──────────────────────────────────────────────
 brew "zsh-autosuggestions"
