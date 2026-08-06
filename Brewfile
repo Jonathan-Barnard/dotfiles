@@ -1,11 +1,12 @@
 # ─────────────────────────────────────────────────────────────
 #  Brewfile — `brew bundle --file=Brewfile`
+#
+#  No `tap "homebrew/bundle"` here: `brew bundle` became a built-in
+#  command in Homebrew 4.5.0 and that tap is now a deprecated empty
+#  archive. If you tapped it previously: brew untap homebrew/bundle
 # ─────────────────────────────────────────────────────────────
 
-tap "homebrew/bundle"
-
 # ── Core ─────────────────────────────────────────────────────
-brew "neovim"
 brew "starship"
 brew "git"
 
@@ -21,12 +22,6 @@ brew "fd"         # find
 brew "ripgrep"    # grep
 brew "fzf"        # fuzzy finder
 brew "zoxide"     # smarter cd
-
-# ── Build deps used by Neovim plugins ────────────────────────
-brew "make"
-brew "cmake"
-brew "tree-sitter"
-brew "node"       # for LSP servers installed via Mason
 
 # ── Font (powerline / nerd glyphs) ───────────────────────────
 cask "font-jetbrains-mono-nerd-font"

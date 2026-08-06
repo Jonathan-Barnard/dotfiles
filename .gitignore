@@ -11,7 +11,3 @@ Thumbs.db
 # Local, machine-specific overrides (never committed)
 *.local
 zshrc.local
-
-# Neovim runtime state (generated, not config)
-nvim/lazy-lock.json.bak
-nvim/.luarc.json

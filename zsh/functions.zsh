@@ -27,7 +27,7 @@ extract() {
 ff() {
   local file
   file=$(fzf --preview 'bat --style=numbers --color=always --line-range :300 {}') || return
-  [[ -n "$file" ]] && ${EDITOR:-nvim} "$file"
+  [[ -n "$file" ]] && ${EDITOR:-vim} "$file"
 }
 
 # fkill — fuzzy-pick a process and kill it

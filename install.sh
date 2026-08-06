@@ -2,7 +2,7 @@
 # ─────────────────────────────────────────────────────────────
 #  dotfiles installer
 #  Usage: ./install.sh [--dry-run] [--no-brew] [--no-font]
-#                      [--no-nvim-sync] [--force] [--help]
+#                      [--force] [--help]
 # ─────────────────────────────────────────────────────────────
 set -euo pipefail
 
@@ -13,8 +13,17 @@ CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 DRY_RUN=0
 DO_BREW=1
 DO_FONT=1
-DO_NVIM_SYNC=1
 FORCE=0
+
+# Everything this repo installs, as src:dest pairs.
+LINKS=(
+  "zsh/zshrc:$HOME/.zshrc"
+  "zsh/aliases.zsh:$CONFIG_HOME/zsh/aliases.zsh"
+  "zsh/functions.zsh:$CONFIG_HOME/zsh/functions.zsh"
+  "starship/starship.toml:$CONFIG_HOME/starship.toml"
+  "ghostty/config:$CONFIG_HOME/ghostty/config"
+  "bat/config:$CONFIG_HOME/bat/config"
+)
 
 # ── Pretty output (gruvbox-ish) ──────────────────────────────
 if [[ -t 1 ]]; then
@@ -32,23 +41,12 @@ ok()    { printf '%s  %s%s\n' "$C_GREEN" "$*" "$C_RESET"; }
 warn()  { printf '%s  %s%s\n' "$C_YELLOW" "$*" "$C_RESET"; }
 err()   { printf '%s  %s%s\n' "$C_RED" "$*" "$C_RESET" >&2; }
 skip()  { printf '%s  %s%s\n' "$C_DIM" "$*" "$C_RESET"; }
+header() { printf '\n%s%s── %s %s%s\n' "$C_BOLD" "$C_ORANGE" "$1" \
+             "$(printf '─%.0s' $(seq 1 $((44 - ${#1}))))" "$C_RESET"; }
 
-header() {
-  printf '\n%s%s╭─────────────────────────────────────────────────╮%s\n' "$C_BOLD" "$C_ORANGE" "$C_RESET"
-  printf '%s%s│%s %-47s %s%s│%s\n' "$C_BOLD" "$C_ORANGE" "$C_RESET" "$1" "$C_BOLD" "$C_ORANGE" "$C_RESET"
-  printf '%s%s╰─────────────────────────────────────────────────╯%s\n' "$C_BOLD" "$C_ORANGE" "$C_RESET"
-}
-
-banner() {
-  printf '%s\n' "$C_ORANGE"
-  cat <<'ART'
-   ╔╦╗╔═╗╔╦╗╔═╗╦╦  ╔═╗╔═╗
-    ║║║ ║ ║ ╠╣ ║║  ║╣ ╚═╗
-   ═╩╝╚═╝ ╩ ╚  ╩╩═╝╚═╝╚═╝
-ART
-  printf '%s   ghostty · zsh · starship · neovim  %s│%s  gruvbox\n%s\n' \
-    "$C_DIM" "$C_ORANGE" "$C_DIM" "$C_RESET"
-}
+# Shorten $HOME to ~ for display. The replacement goes through a variable
+# because a literal `\~` here would survive into the output as a backslash.
+tilde() { local t='~'; printf '%s' "${1/#$HOME/$t}"; }
 
 usage() {
   cat <<'USAGE'
@@ -57,28 +55,25 @@ dotfiles installer
   ./install.sh [options]
 
 Options:
-  --dry-run        Show what would happen, change nothing
-  --no-brew        Skip Homebrew and package installation
-  --no-font        Skip the Nerd Font cask
-  --no-nvim-sync   Skip headless Neovim plugin sync
-  --force          Replace existing files without prompting
-  -h, --help       Show this help
+  --dry-run    Show what would happen, change nothing
+  --no-brew    Skip Homebrew and package installation
+  --no-font    Skip the Nerd Font cask
+  --force      Replace existing files without prompting
+  -h, --help   Show this help
 
 The script is idempotent: run it as often as you like.
 Anything it replaces is backed up to ~/.dotfiles-backup/<timestamp>/
 USAGE
 }
 
-# ── Arg parsing ──────────────────────────────────────────────
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --dry-run)      DRY_RUN=1 ;;
-    --no-brew)      DO_BREW=0 ;;
-    --no-font)      DO_FONT=0 ;;
-    --no-nvim-sync) DO_NVIM_SYNC=0 ;;
-    --force)        FORCE=1 ;;
-    -h|--help)      usage; exit 0 ;;
-    *)              err "Unknown option: $1"; usage; exit 1 ;;
+    --dry-run) DRY_RUN=1 ;;
+    --no-brew) DO_BREW=0 ;;
+    --no-font) DO_FONT=0 ;;
+    --force)   FORCE=1 ;;
+    -h|--help) usage; exit 0 ;;
+    *)         err "Unknown option: $1"; usage; exit 1 ;;
   esac
   shift
 done
@@ -91,24 +86,21 @@ run() {
   fi
 }
 
-# ── OS detection ─────────────────────────────────────────────
-OS="$(uname -s)"
-case "$OS" in
+case "$(uname -s)" in
   Darwin) PLATFORM="macos" ;;
   Linux)  PLATFORM="linux" ;;
-  *)      err "Unsupported OS: $OS"; exit 1 ;;
+  *)      err "Unsupported OS: $(uname -s)"; exit 1 ;;
 esac
 
 # ── 1. Homebrew ──────────────────────────────────────────────
 install_homebrew() {
   if command -v brew >/dev/null 2>&1; then
     ok "Homebrew already installed ($(brew --version | head -1))"
+  elif [[ $DRY_RUN -eq 1 ]]; then
+    skip "would install Homebrew from brew.sh"
+    return
   else
     info "Installing Homebrew…"
-    if [[ $DRY_RUN -eq 1 ]]; then
-      skip "would install Homebrew from brew.sh"
-      return
-    fi
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
   fi
 
@@ -123,6 +115,23 @@ install_packages() {
   if ! command -v brew >/dev/null 2>&1; then
     warn "brew not on PATH — skipping package install"
     return
+  fi
+
+  # `brew cleanup` runs automatically after each install and will abort the
+  # whole bundle if it trips over a stale cache entry or a missing lock file —
+  # even though the formula itself poured fine. Turn it off for this run.
+  export HOMEBREW_NO_INSTALL_CLEANUP=1
+  export HOMEBREW_NO_ENV_HINTS=1
+
+  # Homebrew occasionally loses its locks directory; recreate it if so.
+  local locks_dir
+  locks_dir="$(brew --prefix)/var/homebrew/locks"
+  [[ -d "$locks_dir" ]] || run mkdir -p "$locks_dir"
+
+  # `brew bundle` is built in since Homebrew 4.5.0; the old tap is deprecated.
+  if brew tap 2>/dev/null | grep -qx 'homebrew/bundle'; then
+    info "Removing the deprecated homebrew/bundle tap…"
+    run brew untap homebrew/bundle
   fi
 
   local brewfile="$DOTFILES_DIR/Brewfile"
@@ -144,7 +153,7 @@ install_packages() {
   ok "Packages up to date"
 }
 
-# ── 3. Symlinking ────────────────────────────────────────────
+# ── 3. Symlinks ──────────────────────────────────────────────
 link() {
   local src="$DOTFILES_DIR/$1" dest="$2"
 
@@ -155,7 +164,7 @@ link() {
 
   # Already pointing where we want it
   if [[ -L "$dest" && "$(readlink "$dest")" == "$src" ]]; then
-    skip "linked   ${dest/#$HOME/\~}"
+    skip "current  $(tilde "$dest")"
     return 0
   fi
 
@@ -164,9 +173,9 @@ link() {
   if [[ -e "$dest" || -L "$dest" ]]; then
     if [[ $FORCE -eq 0 && $DRY_RUN -eq 0 && -t 0 ]]; then
       printf '%s  ?  %s exists. Back up and replace? [Y/n] %s' \
-        "$C_YELLOW" "${dest/#$HOME/\~}" "$C_RESET"
+        "$C_YELLOW" "$(tilde "$dest")" "$C_RESET"
       read -r reply
-      [[ "$reply" =~ ^[Nn]$ ]] && { skip "kept     ${dest/#$HOME/\~}"; return 0; }
+      [[ "$reply" =~ ^[Nn]$ ]] && { skip "kept     $(tilde "$dest")"; return 0; }
     fi
     # Mirror the path under $HOME so same-named files (ghostty/config and
     # bat/config, say) can't clobber each other inside the backup.
@@ -174,28 +183,21 @@ link() {
     rel="${rel#/}"
     run mkdir -p "$BACKUP_DIR/$(dirname "$rel")"
     run mv "$dest" "$BACKUP_DIR/$rel"
-    warn "backed up ${dest/#$HOME/\~} → ${BACKUP_DIR/#$HOME/\~}/$rel"
+    warn "backed up $(tilde "$dest") → $(tilde "$BACKUP_DIR")/$rel"
   fi
 
   run ln -sfn "$src" "$dest"
-  ok "linked   ${dest/#$HOME/\~}"
+  ok "linked   $(tilde "$dest")"
 }
-
-LINK_FAILURES=0
 
 link_all() {
   # A single bad link should not abort the whole install.
-  link "zsh/zshrc"                "$HOME/.zshrc"                    || LINK_FAILURES=$((LINK_FAILURES + 1))
-  link "zsh/aliases.zsh"          "$CONFIG_HOME/zsh/aliases.zsh"    || LINK_FAILURES=$((LINK_FAILURES + 1))
-  link "zsh/functions.zsh"        "$CONFIG_HOME/zsh/functions.zsh"  || LINK_FAILURES=$((LINK_FAILURES + 1))
-  link "starship/starship.toml"   "$CONFIG_HOME/starship.toml"      || LINK_FAILURES=$((LINK_FAILURES + 1))
-  link "ghostty/config"           "$CONFIG_HOME/ghostty/config"     || LINK_FAILURES=$((LINK_FAILURES + 1))
-  link "bat/config"               "$CONFIG_HOME/bat/config"         || LINK_FAILURES=$((LINK_FAILURES + 1))
-  link "nvim"                     "$CONFIG_HOME/nvim"               || LINK_FAILURES=$((LINK_FAILURES + 1))
-
-  if [[ $LINK_FAILURES -gt 0 ]]; then
-    err "$LINK_FAILURES link(s) failed — see the messages above"
-  fi
+  local entry failures=0
+  for entry in "${LINKS[@]}"; do
+    link "${entry%%:*}" "${entry#*:}" || failures=$((failures + 1))
+  done
+  [[ $failures -gt 0 ]] && err "$failures link(s) failed — see the messages above"
+  return 0
 }
 
 # ── 4. Shell ─────────────────────────────────────────────────
@@ -223,25 +225,10 @@ set_default_shell() {
   ok "Default shell set — takes effect in new terminals"
 }
 
-# ── 5. Neovim plugin sync ────────────────────────────────────
-sync_neovim() {
-  if ! command -v nvim >/dev/null 2>&1; then
-    warn "nvim not found — skipping plugin sync"
-    return
-  fi
-  info "Syncing Neovim plugins (this takes a minute on first run)…"
-  if [[ $DRY_RUN -eq 1 ]]; then
-    skip "would run: nvim --headless '+Lazy! sync' +qa"
-    return
-  fi
-  nvim --headless "+Lazy! sync" +qa 2>&1 | tail -5 || warn "Plugin sync reported issues — open nvim and run :Lazy"
-  ok "Neovim plugins installed"
-}
-
-# ── 6. Post-install checks ───────────────────────────────────
+# ── Post-install checks ──────────────────────────────────────
 doctor() {
-  local missing=()
-  for tool in zsh nvim starship eza bat fd rg fzf zoxide git; do
+  local missing=() tool
+  for tool in zsh starship eza bat fd rg fzf zoxide git; do
     command -v "$tool" >/dev/null 2>&1 || missing+=("$tool")
   done
 
@@ -268,32 +255,26 @@ doctor() {
 
 # ── Main ─────────────────────────────────────────────────────
 main() {
-  banner
+  printf '\n%s%sdotfiles%s %s· ghostty · zsh · starship · gruvbox%s\n' \
+    "$C_BOLD" "$C_ORANGE" "$C_RESET" "$C_DIM" "$C_RESET"
   [[ $DRY_RUN -eq 1 ]] && warn "DRY RUN — nothing will be modified"
   info "Platform: $PLATFORM"
   info "Dotfiles: $DOTFILES_DIR"
 
   if [[ $DO_BREW -eq 1 ]]; then
-    header "1/5  Homebrew"
+    header "1/4  Homebrew"
     install_homebrew
-    header "2/5  Packages"
+    header "2/4  Packages"
     install_packages
   else
     warn "Skipping Homebrew and packages (--no-brew)"
   fi
 
-  header "3/5  Symlinks"
+  header "3/4  Symlinks"
   link_all
 
-  header "4/5  Default shell"
+  header "4/4  Default shell"
   set_default_shell
-
-  header "5/5  Neovim"
-  if [[ $DO_NVIM_SYNC -eq 1 ]]; then
-    sync_neovim
-  else
-    warn "Skipping Neovim plugin sync (--no-nvim-sync)"
-  fi
 
   header "Doctor"
   doctor
@@ -304,10 +285,8 @@ main() {
   ${C_AQUA}Next steps${C_RESET}
     1. Quit and reopen Ghostty (or press ⌘⇧, to reload its config)
     2. Open a new terminal — the powerline prompt should appear
-    3. Run ${C_YELLOW}nvim${C_RESET}; Mason will fetch LSP servers on first launch
-    4. Run ${C_YELLOW}:checkhealth${C_RESET} inside Neovim to confirm everything is wired up
 
-  ${C_DIM}Backups (if any): ${BACKUP_DIR}${C_RESET}
+  ${C_DIM}Backups (if any): $(tilde "$BACKUP_DIR")${C_RESET}
   ${C_DIM}Machine-specific overrides go in ~/.zshrc.local (git-ignored)${C_RESET}
 
 EOF

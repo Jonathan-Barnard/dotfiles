@@ -12,11 +12,10 @@ export DOTFILES="${DOTFILES:-$HOME/.dotfiles}"
 export ZDOTDIR_CONFIG="$HOME/.config/zsh"
 
 # ── Environment ──────────────────────────────────────────────
-export EDITOR="nvim"
-export VISUAL="nvim"
+export EDITOR="vim"
+export VISUAL="vim"
 export PAGER="less"
 export LESS="-R"
-export MANPAGER="nvim +Man!"
 export LANG="en_US.UTF-8"
 
 typeset -U path PATH
@@ -98,7 +97,7 @@ export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 export FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude .git'
 export FZF_DEFAULT_OPTS="
   --height 60% --layout=reverse --border=rounded --info=inline
-  --prompt='  ' --pointer='' --marker=''
+  --prompt='󰍉  ' --pointer='❯' --marker='✚'
   --color=bg+:#3c3836,bg:#1d2021,spinner:#fe8019,hl:#928374
   --color=fg:#ebdbb2,header:#928374,info:#8ec07c,pointer:#fe8019
   --color=marker:#fe8019,fg+:#ebdbb2,prompt:#fabd2f,hl+:#fb4934
@@ -144,3 +143,6 @@ if [[ -f "$_brew_prefix/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zs
   ZSH_HIGHLIGHT_STYLES[redirection]='fg=#d3869b'
 fi
 unset _brew_prefix
+
+# opencode
+export PATH=/Users/Jonny/.opencode/bin:$PATH
