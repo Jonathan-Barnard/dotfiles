@@ -36,7 +36,7 @@ alias mkdir='mkdir -p'
 
 # ── Git ──────────────────────────────────────────────────────
 alias g='git'
-alias gs='git status -sb'
+alias gs='git status'
 alias ga='git add'
 alias gaa='git add --all'
 alias gc='git commit -v'

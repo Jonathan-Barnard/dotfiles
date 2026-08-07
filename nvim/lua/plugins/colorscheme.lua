@@ -50,6 +50,16 @@ return {
         -- #fe8019 is ghostty's cursor-color
         Search = { fg = "#1d2021", bg = "#fabd2f" },
         IncSearch = { fg = "#1d2021", bg = "#fe8019" },
+        -- which-key links these with default = true, so anything set
+        -- here wins and survives its ColorScheme re-link.
+        WhichKeyNormal = { bg = "#1d2021" },
+        WhichKeyBorder = { fg = "#665c54", bg = "NONE" },
+        WhichKeyTitle = { fg = "#fabd2f", bold = true },
+        WhichKey = { fg = "#fe8019" },          -- the pending key itself
+        WhichKeyGroup = { fg = "#83a598" },     -- a prefix with more behind it
+        WhichKeyDesc = { fg = "#ebdbb2" },
+        WhichKeySeparator = { fg = "#665c54" },
+        WhichKeyValue = { fg = "#928374" },     -- register/mark contents
       },
     },
     config = function(_, opts)
