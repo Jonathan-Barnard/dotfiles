@@ -36,9 +36,10 @@ require("lazy").setup({
   rocks = { enabled = false },
   performance = {
     rtp = {
-      -- netrwPlugin stays enabled — <leader>e uses it.
+      -- netrwPlugin is off — neo-tree is the file browser now.
       disabled_plugins = {
         "gzip",
+        "netrwPlugin",
         "tarPlugin",
         "tohtml",
         "tutor",

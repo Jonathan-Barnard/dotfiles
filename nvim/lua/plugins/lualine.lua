@@ -89,9 +89,8 @@ return {
           { "location", separator = { right = "" } },
         },
       },
-      -- Only names under lualine/extensions/ are valid here; there is
-      -- no bundled netrw extension.
-      extensions = { "lazy" },
+      -- Only names under lualine/extensions/ are valid here.
+      extensions = { "lazy", "neo-tree" },
     },
   },
 }

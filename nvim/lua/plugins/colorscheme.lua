@@ -60,6 +60,35 @@ return {
         WhichKeyDesc = { fg = "#ebdbb2" },
         WhichKeySeparator = { fg = "#665c54" },
         WhichKeyValue = { fg = "#928374" },     -- register/mark contents
+        -- neo-tree: same chrome as the floats above so the sidebar
+        -- doesn't read as a different application.
+        NeoTreeNormal = { bg = "#1d2021" },
+        NeoTreeNormalNC = { bg = "#1d2021" },
+        NeoTreeEndOfBuffer = { fg = "#1d2021", bg = "#1d2021" },
+        NeoTreeWinSeparator = { fg = "#3c3836", bg = "NONE" },
+        NeoTreeFloatBorder = { fg = "#665c54", bg = "NONE" },
+        NeoTreeFloatTitle = { fg = "#fabd2f", bold = true },
+        NeoTreeCursorLine = { bg = "#282828" },
+        NeoTreeIndentMarker = { fg = "#3c3836" },
+        NeoTreeExpander = { fg = "#665c54" },
+        NeoTreeRootName = { fg = "#fe8019", bold = true },
+        NeoTreeDirectoryName = { fg = "#83a598" },
+        NeoTreeDirectoryIcon = { fg = "#83a598" },
+        NeoTreeFileNameOpened = { fg = "#fabd2f" },
+        NeoTreeDotfile = { fg = "#928374" },
+        -- the source_selector winbar tabs
+        NeoTreeTabActive = { fg = "#fe8019", bg = "#1d2021", bold = true },
+        NeoTreeTabInactive = { fg = "#928374", bg = "#282828" },
+        NeoTreeTabSeparatorActive = { fg = "#1d2021", bg = "#1d2021" },
+        NeoTreeTabSeparatorInactive = { fg = "#282828", bg = "#282828" },
+        -- git columns, matching lualine's diff colours
+        NeoTreeGitAdded = { fg = "#b8bb26" },
+        NeoTreeGitModified = { fg = "#fabd2f" },
+        NeoTreeGitDeleted = { fg = "#fb4934" },
+        NeoTreeGitRenamed = { fg = "#d3869b" },
+        NeoTreeGitUntracked = { fg = "#928374" },
+        NeoTreeGitConflict = { fg = "#fb4934", bold = true },
+        NeoTreeGitIgnored = { fg = "#665c54" },
       },
     },
     config = function(_, opts)

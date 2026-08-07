@@ -52,9 +52,3 @@ opt.swapfile = false
 opt.backup = false
 opt.updatetime = 250
 opt.timeoutlen = 400
-
--- ── netrw ────────────────────────────────────────────────────
--- The only file browser here until a plugin replaces it (<leader>e).
-vim.g.netrw_banner = 0
-vim.g.netrw_liststyle = 3       -- tree view
-vim.g.netrw_winsize = 25

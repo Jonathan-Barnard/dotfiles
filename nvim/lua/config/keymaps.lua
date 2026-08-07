@@ -11,7 +11,7 @@ map("n", "<leader>w", "<cmd>write<CR>", "Write file")
 map("n", "<leader>q", "<cmd>quit<CR>", "Quit window")
 map("n", "<leader>Q", "<cmd>quitall<CR>", "Quit all")
 map("n", "<leader>l", "<cmd>Lazy<CR>", "Lazy: plugin manager")
-map("n", "<leader>e", "<cmd>Explore<CR>", "Explore: file browser")
+map("n", "<leader>e", "<cmd>Neotree toggle<CR>", "Explorer: file tree")
 
 -- ── Windows ──────────────────────────────────────────────────
 map("n", "<C-h>", "<C-w>h", "Go to left window")

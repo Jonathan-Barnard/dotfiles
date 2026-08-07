@@ -7,7 +7,7 @@ Ghostty · zsh · Starship · Neovim — one Gruvbox Dark Hard palette across th
 │  Ghostty        gruvbox palette, JetBrainsMono Nerd Font │
 │  zsh            history, completion, syntax highlighting │
 │  Starship       two-line powerline prompt                │
-│  Neovim         lazy.nvim, gruvbox, matching statusline  │
+│  Neovim         lazy.nvim, neo-tree, statusline, gruvbox │
 │  eza bat fd rg fzf zoxide   themed to match              │
 └──────────────────────────────────────────────────────────┘
 ```
@@ -93,7 +93,7 @@ Leader is `Space`.
 | Keys | Action |
 | --- | --- |
 | `<leader>w` / `<leader>q` / `<leader>Q` | Write / quit / quit all |
-| `<leader>e` | File browser (netrw) |
+| `<leader>e` | File tree (neo-tree) — `<` / `>` switch files / buffers / git |
 | `<leader>l` | `:Lazy` — plugin manager |
 | `Ctrl+H/J/K/L` | Move between splits |
 | `<leader>sv` / `<leader>sh` | Split right / down |
@@ -128,13 +128,15 @@ Gruvbox Dark Hard, used identically by Ghostty, Starship, fzf, bat and zsh synta
 
 ### What's in the Neovim config
 
-Deliberately small — options, keymaps, a colourscheme and a statusline, with lazy.nvim ready for whatever comes next. No LSP, treesitter or fuzzy finder yet.
+Deliberately small — options, keymaps, a colourscheme, a statusline, a file tree and key hints, with lazy.nvim ready for whatever comes next. No LSP, treesitter or fuzzy finder yet.
+
+No icon provider is installed, so every file in the tree shares one glyph — add `nvim-web-devicons` or `mini.icons` and per-filetype icons appear with no further config. netrw is disabled; neo-tree handles `nvim .` too.
 
 ```
 nvim/
 ├── init.lua
 ├── lua/config/{options,keymaps,autocmds,lazy}.lua
-└── lua/plugins/{colorscheme,lualine}.lua
+└── lua/plugins/{colorscheme,lualine,neo-tree,which-key}.lua
 ```
 
 The lualine theme is written from `starship.toml`'s palette rather than lualine's bundled gruvbox — same separator glyphs, same colours, so the prompt and the statusline read as one thing.
