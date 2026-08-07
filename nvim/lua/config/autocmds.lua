@@ -65,3 +65,14 @@ vim.api.nvim_create_autocmd("VimResized", {
   group = augroup("resize"),
   command = "tabdo wincmd =",
 })
+
+-- Close a terminal's window automatically when the shell exits cleanly,
+-- rather than leaving a dead "[Process exited 0]" buffer behind.
+vim.api.nvim_create_autocmd("TermClose", {
+  group = augroup("term_close"),
+  callback = function(event)
+    if vim.v.event.status == 0 then
+      pcall(vim.api.nvim_win_close, vim.fn.bufwinid(event.buf), false)
+    end
+  end,
+})

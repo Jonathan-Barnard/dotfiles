@@ -39,7 +39,7 @@ alias mkdir='mkdir -p'
 
 # git
 alias g='git'
-alias gs='git status --short --branch'
+alias gs='git status'
 alias ga='git add'
 alias gc='git commit'
 alias gcm='git commit -m'

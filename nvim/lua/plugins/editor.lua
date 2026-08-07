@@ -18,14 +18,14 @@ return {
     },
     keys = {
       { "<leader>ff", "<cmd>Telescope find_files<cr>", desc = "Find files" },
-      { "<leader>fg", "<cmd>Telescope live_grep<cr>", desc = "Grep in project" },
+      { "<leader><leader>", "<cmd>Telescope find_files<cr>", desc = "Find files" },
       { "<leader>fb", "<cmd>Telescope buffers<cr>", desc = "Find open buffer" },
+      { "<leader>fg", "<cmd>Telescope live_grep<cr>", desc = "Grep in project" },
       { "<leader>fh", "<cmd>Telescope help_tags<cr>", desc = "Search help" },
       { "<leader>fr", "<cmd>Telescope oldfiles<cr>", desc = "Recent files" },
       { "<leader>fk", "<cmd>Telescope keymaps<cr>", desc = "Search keymaps" },
       { "<leader>fd", "<cmd>Telescope diagnostics<cr>", desc = "Diagnostics" },
       { "<leader>fw", "<cmd>Telescope grep_string<cr>", desc = "Find word under cursor" },
-      { "<leader><leader>", "<cmd>Telescope find_files<cr>", desc = "Find files" },
     },
     opts = {
       defaults = {
@@ -65,8 +65,7 @@ return {
       "MunifTanjim/nui.nvim",
     },
     keys = {
-      { "<leader>tf", "<cmd>Neotree toggle<cr>", desc = "Toggle file tree" },
-      { "<leader>tr", "<cmd>Neotree reveal<cr>", desc = "Reveal current file in tree" },
+      { "<leader>e", "<cmd>Neotree toggle<cr>", desc = "Toggle file tree" },
     },
     opts = {
       close_if_last_window = true,
