@@ -30,6 +30,30 @@ map("n", "<leader>sh", "<cmd>split<CR>", "Split down")
 map("n", "<leader>sc", "<cmd>close<CR>", "Close split")
 map("n", "<leader>s=", "<C-w>=", "Equalise splits")
 
+-- ── Tabs ─────────────────────────────────────────────────────
+-- <Tab> is a prefix, never a mapping on its own, so h/l here read the
+-- same as <C-h>/<C-l> for windows and <S-h>/<S-l> for buffers. Capital
+-- H/L move the tab itself, like J/K move a visual selection.
+--
+-- <Tab> and <C-i> are the same byte in a legacy terminal, so this would
+-- normally cost you jumplist-forward. Ghostty speaks the kitty keyboard
+-- protocol and nvim ≥ 0.10 reads it, which keeps the two apart.
+map("n", "<Tab>h", "<cmd>tabprevious<CR>", "Previous tab")
+map("n", "<Tab>l", "<cmd>tabnext<CR>", "Next tab")
+map("n", "<Tab>n", "<cmd>tabnew<CR>", "New tab")
+map("n", "<Tab>q", "<cmd>tabclose<CR>", "Close tab")
+map("n", "<Tab>o", "<cmd>tabonly<CR>", "Close other tabs")
+map("n", "<Tab>m", "<C-w>T", "Move window to its own tab")
+map("n", "<Tab>H", "<cmd>tabmove -1<CR>", "Move tab left")
+map("n", "<Tab>L", "<cmd>tabmove +1<CR>", "Move tab right")
+
+-- The tabline numbers each tab, so jump straight to one. `silent!`
+-- because :tabnext 9 with fewer tabs open is an E16 rather than a no-op.
+-- Defined last so which-key's `order` sort keeps them below the rest.
+for i = 1, 9 do
+  map("n", "<Tab>" .. i, "<cmd>silent! tabnext " .. i .. "<CR>", "Go to tab " .. i)
+end
+
 -- ── Buffers ──────────────────────────────────────────────────
 map("n", "<S-h>", "<cmd>bprevious<CR>", "Previous buffer")
 map("n", "<S-l>", "<cmd>bnext<CR>", "Next buffer")
@@ -53,11 +77,10 @@ map("v", "p", '"_dP', "Paste without clobbering the register")
 -- Built-in :terminal, so every press is a *new* shell rather than
 -- one window you toggle. `+terminal` makes the split and the shell
 -- a single command. Park a long-running one in its own tab with
--- <leader>tm, then switch tabs with gt / gT.
+-- <Tab>m, then walk tabs with <Tab>h / <Tab>l.
 map("n", "<leader>tt", "<cmd>15split +terminal<CR>", "Terminal: bottom split")
 map("n", "<leader>tv", "<cmd>vsplit +terminal<CR>", "Terminal: split right")
 map("n", "<leader>tT", "<cmd>tabnew +terminal<CR>", "Terminal: new tab")
-map("n", "<leader>tm", "<C-w>T", "Move window to a new tab")
 
 -- Only <Esc><Esc> is mapped in terminal mode: Ctrl+L (clear), Ctrl+J
 -- and Ctrl+K stay with zsh, as do Alt+arrows (word motions). Leave

@@ -88,7 +88,7 @@ Handy functions: `mkcd`, `extract`, `ff` (fuzzy open in editor), `fkill`, `gcob`
 
 ### Neovim
 
-Leader is `Space`.
+Leader is `Space`. The modifier tells you what you're moving between — `Ctrl` windows, `Tab` tab pages, `⇧` buffers, `⌥` resizes — and `<leader>` is for commands rather than movement. `Ctrl+D`/`Ctrl+U` are the deliberate exception: they scroll, because that's what they do in every other Vim.
 
 | Keys | Action |
 | --- | --- |
@@ -101,16 +101,21 @@ Leader is `Space`.
 | `⌥` arrows | Resize split — macOS keeps `Ctrl`+arrows for Mission Control |
 | `⇧H` / `⇧L` | Previous / next buffer |
 | `<leader>bd` | Delete buffer |
+| `Tab` `h` / `Tab` `l` | Previous / next tab |
+| `Tab` `n` / `Tab` `q` / `Tab` `o` | New tab / close it / close the others |
+| `Tab` `1`…`9` | Jump to that tab |
+| `Tab` `⇧H` / `Tab` `⇧L` | Move the tab left / right along the bar |
+| `Tab` `m` | Move the current window to its own tab |
 | `<leader>tt` / `<leader>tv` / `<leader>tT` | Terminal in a bottom split / right split / new tab |
-| `<leader>tm` | Move the current window to its own tab |
 | `Esc Esc` | Leave terminal mode |
-| `gt` / `gT` | Next / previous tab |
 | `J` / `K` (visual) | Move the selection up/down |
 | `Esc` | Clear search highlight |
 
 Splits and their bindings deliberately mirror Ghostty's, so `⌘D` outside nvim and `<leader>sv` inside it do the same thing.
 
-Terminals are built-in `:terminal` rather than a plugin — every press opens a *new* shell, so when one turns out to be long-running, `<leader>tm` promotes it to its own tab and it stays there. A clean `exit` closes the split itself; a non-zero exit is left on screen. Ctrl+L, Ctrl+J, Ctrl+K and Alt+arrows are deliberately unmapped in terminal mode so they still belong to zsh — press `Esc Esc` first.
+`Tab` is a prefix, never a key on its own. It shares a byte with `Ctrl+I` in a legacy terminal, which would normally cost you jumplist-forward — Ghostty speaks the kitty keyboard protocol and nvim reads it, so the two stay distinct. `gt` / `gT` still work; they're just not the way in any more.
+
+Terminals are built-in `:terminal` rather than a plugin — every press opens a *new* shell, so when one turns out to be long-running, `Tab` `m` promotes it to its own tab and it stays there. A clean `exit` closes the split itself; a non-zero exit is left on screen. Ctrl+L, Ctrl+J, Ctrl+K and Alt+arrows are deliberately unmapped in terminal mode so they still belong to zsh — press `Esc Esc` first.
 
 ## The palette
 
