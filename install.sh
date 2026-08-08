@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 # ─────────────────────────────────────────────────────────────
-#  dotfiles installer  ·  WSL Ubuntu
+#  dotfiles installer  ·  macOS · Linux · WSL
 #  Usage: ./install.sh [--dry-run] [--no-brew] [--no-font]
 #                      [--force] [--help]
 #
-#  Same shape as the macOS repo: a declarative LINKS array and a
-#  Brewfile. Homebrew rather than apt, so both machines install the
-#  same versions of the same tools at the same paths.
+#  One declarative LINKS array and one Brewfile. Homebrew on every
+#  platform, so all three machines get the same versions of the same
+#  tools at the same paths; the native package manager is used only
+#  for Homebrew's own prerequisites and the things it cannot supply.
 # ─────────────────────────────────────────────────────────────
 set -euo pipefail
 
@@ -24,8 +25,9 @@ LINKS=(
   "zsh/zshrc:$HOME/.zshrc"
   "zsh/aliases.zsh:$CONFIG_HOME/zsh/aliases.zsh"
   "zsh/functions.zsh:$CONFIG_HOME/zsh/functions.zsh"
-  "zsh/wsl.zsh:$CONFIG_HOME/zsh/wsl.zsh"
+  "zsh/os.zsh:$CONFIG_HOME/zsh/os.zsh"
   "starship/starship.toml:$CONFIG_HOME/starship.toml"
+  "ghostty/config:$CONFIG_HOME/ghostty/config"
   "bat/config:$CONFIG_HOME/bat/config"
   "nvim:$CONFIG_HOME/nvim"
 )
@@ -62,15 +64,16 @@ dotfiles installer
 Options:
   --dry-run    Show what would happen, change nothing
   --no-brew    Skip Homebrew and package installation
-  --no-font    Skip the Nerd Font cask (macOS only; a no-op here)
+  --no-font    Skip the JetBrainsMono Nerd Font
   --force      Replace existing files without prompting
   -h, --help   Show this help
 
-The script is idempotent: run it as often as you like.
-Anything it replaces is backed up to ~/.dotfiles-backup/<timestamp>/
+Works on macOS, Linux and WSL. The script is idempotent: run it as
+often as you like. Anything it replaces is backed up to
+~/.dotfiles-backup/<timestamp>/
 
-Windows Terminal owns the font and colours and lives outside WSL —
-see windows/README.md for that half.
+On WSL the font and colours belong to Windows Terminal, which lives
+outside WSL — see windows/README.md for that half.
 USAGE
 }
 
@@ -104,23 +107,38 @@ IS_WSL=0
 grep -qi microsoft /proc/version 2>/dev/null && IS_WSL=1
 
 # ── 0. Prerequisites (Linux only) ────────────────────────────
+# macOS arrives with a compiler, zsh and a working locale. Linux does not,
+# and Homebrew will not install without them. A desktop Linux box also needs
+# a clipboard tool for Neovim and fontconfig for the Nerd Font — WSL gets
+# both from Windows instead.
 install_prereqs() {
   [[ "$PLATFORM" == "linux" ]] || return 0
 
-  if ! command -v apt-get >/dev/null 2>&1; then
-    warn "apt-get not found — install build-essential, curl, file, git and zsh yourself"
+  local desktop=()
+  if [[ $IS_WSL -eq 0 ]]; then
+    desktop=(fontconfig xclip wl-clipboard)
+  fi
+
+  info "Installing prerequisites (needs sudo)…"
+  if command -v apt-get >/dev/null 2>&1; then
+    run sudo apt-get update -qq
+    run sudo apt-get install -y -qq \
+      build-essential procps curl file git zsh unzip locales "${desktop[@]}"
+  elif command -v dnf >/dev/null 2>&1; then
+    run sudo dnf install -y -q \
+      @development-tools procps-ng curl file git zsh unzip "${desktop[@]}"
+  elif command -v pacman >/dev/null 2>&1; then
+    run sudo pacman -S --needed --noconfirm \
+      base-devel procps-ng curl file git zsh unzip "${desktop[@]}"
+  else
+    warn "No apt-get, dnf or pacman — install these yourself, then re-run:"
+    warn "  a C toolchain, procps, curl, file, git, zsh, unzip ${desktop[*]}"
     return 0
   fi
 
-  # build-essential/procps/curl/file/git are Homebrew's own requirements.
-  # zsh is the login shell (Ubuntu does not ship it; macOS does).
-  info "Installing prerequisites (needs sudo)…"
-  run sudo apt-get update -qq
-  run sudo apt-get install -y -qq \
-    build-essential procps curl file git zsh locales
-
   # zshrc exports LANG=en_US.UTF-8; on a stock Ubuntu image it is not generated.
-  if ! locale -a 2>/dev/null | grep -qix 'en_US.utf8'; then
+  if command -v locale-gen >/dev/null 2>&1 \
+     && ! locale -a 2>/dev/null | grep -qix 'en_US.utf8'; then
     info "Generating the en_US.UTF-8 locale…"
     run sudo locale-gen en_US.UTF-8
   fi
@@ -179,7 +197,7 @@ install_packages() {
     local tmp; tmp="$(mktemp)"
     grep -v '^cask' "$brewfile" > "$tmp"
     brewfile="$tmp"
-    info "Casks are macOS-only — the Nerd Font is installed on the Windows side"
+    skip "casks are macOS-only — the font is handled separately below"
   fi
 
   info "Installing packages from Brewfile…"
@@ -187,7 +205,54 @@ install_packages() {
   ok "Packages up to date"
 }
 
-# ── 3. Symlinks ──────────────────────────────────────────────
+# ── 3. Nerd Font ─────────────────────────────────────────────
+# macOS gets it from the cask in the Brewfile. WSL renders in Windows
+# Terminal, so the font has to be installed on the Windows side. That
+# leaves desktop Linux, which has no cask and needs the release zip.
+install_font() {
+  if [[ $DO_FONT -eq 0 ]]; then
+    skip "skipping the Nerd Font (--no-font) — powerline glyphs will be boxes"
+    return 0
+  fi
+
+  if [[ "$PLATFORM" == "macos" ]]; then
+    skip "font comes from the Brewfile cask"
+    return 0
+  fi
+
+  if [[ $IS_WSL -eq 1 ]]; then
+    info "Windows Terminal owns the font — see windows/README.md"
+    return 0
+  fi
+
+  local dir="$HOME/.local/share/fonts/JetBrainsMonoNerdFont"
+  if compgen -G "$dir/*.ttf" >/dev/null 2>&1; then
+    ok "JetBrainsMono Nerd Font already installed"
+    return 0
+  fi
+
+  if [[ $DRY_RUN -eq 1 ]]; then
+    skip "would download JetBrainsMono Nerd Font to $(tilde "$dir")"
+    return 0
+  fi
+
+  local tmp url
+  tmp="$(mktemp -d)"
+  url="https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.zip"
+
+  info "Downloading JetBrainsMono Nerd Font…"
+  if curl -fsSL "$url" -o "$tmp/font.zip" \
+     && mkdir -p "$dir" \
+     && unzip -q -o "$tmp/font.zip" '*.ttf' -d "$dir"; then
+    command -v fc-cache >/dev/null 2>&1 && fc-cache -f "$dir" >/dev/null 2>&1
+    ok "Nerd Font installed to $(tilde "$dir")"
+  else
+    warn "Font download failed — powerline glyphs will render as boxes"
+  fi
+  rm -rf "$tmp"
+}
+
+# ── 4. Symlinks ──────────────────────────────────────────────
 link() {
   local src="$DOTFILES_DIR/$1" dest="$2"
 
@@ -234,7 +299,7 @@ link_all() {
   return 0
 }
 
-# ── 4. Shell ─────────────────────────────────────────────────
+# ── 5. Shell ─────────────────────────────────────────────────
 set_default_shell() {
   local zsh_path
   zsh_path="$(command -v zsh || true)"
@@ -273,46 +338,90 @@ doctor() {
     warn "Open a new terminal (Homebrew's PATH may not be loaded yet) and re-check."
   fi
 
-  # The font lives on the Windows side, where this script cannot see it.
-  if [[ $IS_WSL -eq 1 ]]; then
-    info "Nerd Font and colours are set in Windows Terminal — see windows/README.md"
+  # Neovim's clipboard = "unnamedplus" needs a provider on desktop Linux.
+  # macOS has pbcopy built in; on WSL the terminal handles copy and paste.
+  if [[ "$PLATFORM" == "linux" && $IS_WSL -eq 0 ]]; then
+    if command -v wl-copy >/dev/null 2>&1 || command -v xclip >/dev/null 2>&1; then
+      ok "Clipboard tool present — nvim's yanks reach the desktop"
+    else
+      warn "No wl-clipboard or xclip — nvim's clipboard won't leave the editor"
+    fi
+  fi
+
+  # Fonts: a cask on macOS, a directory on Linux, and out of reach on WSL.
+  local font_found=0 dir
+  case "$PLATFORM" in
+    macos)
+      for dir in "$HOME/Library/Fonts" "/Library/Fonts"; do
+        [[ -d "$dir" ]] || continue
+        if compgen -G "$dir/JetBrainsMono*Nerd*" >/dev/null; then font_found=1; break; fi
+      done
+      ;;
+    linux)
+      if [[ $IS_WSL -eq 1 ]]; then
+        info "Nerd Font and colours are set in Windows Terminal — see windows/README.md"
+        return 0
+      fi
+      fc-list 2>/dev/null | grep -qi 'jetbrainsmono.*nerd' && font_found=1
+      ;;
+  esac
+
+  if [[ $font_found -eq 1 ]]; then
+    ok "JetBrainsMono Nerd Font detected"
+  else
+    warn "JetBrainsMono Nerd Font not detected — powerline glyphs may render as boxes"
   fi
 }
 
 # ── Main ─────────────────────────────────────────────────────
 main() {
-  printf '\n%s%sdotfiles%s %s· wsl · zsh · starship · nvim · gruvbox%s\n' \
+  printf '\n%s%sdotfiles%s %s· zsh · starship · nvim · gruvbox%s\n' \
     "$C_BOLD" "$C_ORANGE" "$C_RESET" "$C_DIM" "$C_RESET"
   [[ $DRY_RUN -eq 1 ]] && warn "DRY RUN — nothing will be modified"
   info "Platform: $PLATFORM$([[ $IS_WSL -eq 1 ]] && printf ' (WSL)')"
   info "Dotfiles: $DOTFILES_DIR"
 
   if [[ $DO_BREW -eq 1 ]]; then
-    header "1/5  Prerequisites"
+    header "1/6  Prerequisites"
     install_prereqs
-    header "2/5  Homebrew"
+    header "2/6  Homebrew"
     install_homebrew
-    header "3/5  Packages"
+    header "3/6  Packages"
     install_packages
   else
     warn "Skipping prerequisites, Homebrew and packages (--no-brew)"
   fi
 
-  header "4/5  Symlinks"
+  header "4/6  Nerd Font"
+  install_font
+
+  header "5/6  Symlinks"
   link_all
 
-  header "5/5  Default shell"
+  header "6/6  Default shell"
   set_default_shell
 
   header "Doctor"
   doctor
 
   printf '\n%s%s  Done.%s\n' "$C_BOLD" "$C_GREEN" "$C_RESET"
+
+  # Step 1 is the only thing that differs between the three platforms.
+  local first_step
+  if [[ $IS_WSL -eq 1 ]]; then
+    first_step="Apply the Windows Terminal half once — see windows/README.md
+       (JetBrainsMono Nerd Font + the Gruvbox scheme and keybinds)"
+  elif [[ "$PLATFORM" == "macos" ]]; then
+    first_step="Quit and reopen Ghostty (or press ⌘⇧, to reload its config)"
+  else
+    first_step="Restart Ghostty, or point your terminal at JetBrainsMono
+       Nerd Font if you use a different one"
+  fi
+
   cat <<EOF
 
   ${C_AQUA}Next steps${C_RESET}
-    1. Apply the Windows Terminal half once — see windows/README.md
-       (JetBrainsMono Nerd Font + the Gruvbox scheme and keybinds)
+    1. $first_step
     2. Open a new terminal — the powerline prompt should appear
     3. Run nvim — the first launch bootstraps lazy.nvim and installs
        its plugins, then you're done

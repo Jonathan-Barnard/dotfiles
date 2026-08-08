@@ -95,8 +95,8 @@ ZSH_AUTOSUGGEST_STRATEGY=(history completion)
 # ── Aliases & functions ──────────────────────────────────────
 [[ -f "$ZDOTDIR_CONFIG/aliases.zsh" ]]   && source "$ZDOTDIR_CONFIG/aliases.zsh"
 [[ -f "$ZDOTDIR_CONFIG/functions.zsh" ]] && source "$ZDOTDIR_CONFIG/functions.zsh"
-# Last, so it can override anything above it with a Linux/WSL equivalent.
-[[ -f "$ZDOTDIR_CONFIG/wsl.zsh" ]]       && source "$ZDOTDIR_CONFIG/wsl.zsh"
+# Last, so it can override anything above it with a per-OS equivalent.
+[[ -f "$ZDOTDIR_CONFIG/os.zsh" ]]        && source "$ZDOTDIR_CONFIG/os.zsh"
 
 # ── fzf (gruvbox themed) ─────────────────────────────────────
 export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'

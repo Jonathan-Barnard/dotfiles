@@ -11,7 +11,12 @@ if command -v eza &>/dev/null; then
   alias lt='eza --tree --level=2 --group-directories-first --icons=auto'
   alias ltt='eza --tree --level=4 --group-directories-first --icons=auto'
 else
-  alias ls='ls -G'
+  # GNU coreutils wants --color, BSD/macOS wants -G.
+  if ls --color=auto . &>/dev/null; then
+    alias ls='ls --color=auto'
+  else
+    alias ls='ls -G'
+  fi
   alias ll='ls -lh'
   alias la='ls -lah'
 fi
@@ -71,9 +76,8 @@ alias nvimconf='$EDITOR "$DOTFILES/nvim"'
 alias grep='grep --color=auto'
 alias df='df -h'
 alias du='du -h'
-alias free='top -l 1 -s 0 | grep PhysMem'
 alias path='echo -e ${PATH//:/\\n}'
-alias ports='lsof -i -P -n | grep LISTEN'
+# free and ports need different commands per OS — see zsh/os.zsh
 alias ip='curl -s https://ifconfig.me && echo'
 alias serve='python3 -m http.server'
 alias week='date +%V'
