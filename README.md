@@ -65,24 +65,29 @@ Anything already at one of those paths is moved to `~/.dotfiles-backup/<timestam
 
 ### What `install.sh` does
 
-1. `apt-get` the handful of packages Homebrew itself needs, plus `zsh` and `unzip`, and generates the `en_US.UTF-8` locale
+1. `apt-get` the handful of packages Homebrew itself needs, plus `zsh`, and generates the `en_US.UTF-8` locale
 2. Installs Homebrew if it's missing
 3. `brew bundle` from the `Brewfile` — Starship, zsh plugins, CLI tools
-4. Installs `win32yank` so Neovim's clipboard reaches Windows
-5. Symlinks the table above, backing up anything already there
-6. Sets zsh as the login shell
+4. Symlinks the table above, backing up anything already there
+5. Sets zsh as the login shell
 
 Then a doctor report flags any expected tool missing from `PATH`.
 
 Commit and push with `dotpush "message"`.
 
-## The WSL-specific parts
+## The WSL-specific part
 
-There are only two, by design.
+There is only one, by design: **`zsh/wsl.zsh`**, sourced after `aliases.zsh` so it can override it. It swaps the two BSD-only aliases (`free`, `ports`) for their Linux equivalents, retargets `ghosttyconf` to `wtconf`, and adds the Windows interop: `open` → Explorer, `pbcopy` / `pbpaste`, `winhome`.
 
-**`zsh/wsl.zsh`** is sourced after `aliases.zsh` so it can override it. It swaps the two BSD-only aliases (`free`, `ports`) for their Linux equivalents, retargets `ghosttyconf` to `wtconf`, and adds the Windows interop: `open` → Explorer, `pbcopy` / `pbpaste`, `winhome`.
+`nvim/` needs no WSL branch at all — see the clipboard note below.
 
-**`win32yank`** is why `nvim/` needs no WSL branch at all. The Neovim config sets `clipboard = "unnamedplus"`, identical to macOS. That is only comfortable because win32yank is fast — routing paste through `powershell.exe Get-Clipboard` costs about 200 ms, which you'd pay on every single put. `install.sh` drops the binary in `~/.local/bin`. If it's ever missing, Neovim quietly falls back to its own registers: nothing breaks, the clipboard just stops being shared with Windows.
+### Clipboard
+
+Neovim keeps `clipboard = "unnamedplus"`, byte-identical to macOS, with no provider wired up behind it. Yanks stay inside Neovim; nothing shells out, so nothing is slow.
+
+Getting text in and out is the terminal's job instead: `copyOnSelect` is on, so selecting with the mouse copies, `Ctrl+Shift+C` copies, and `Ctrl+V` pastes. At the shell, `pbcopy` and `pbpaste` from `wsl.zsh` work as they do on macOS.
+
+If you later want `"+y` inside Neovim to reach Windows, the usual fix is `win32yank` on `PATH` — Neovim detects it on its own, with no config change here.
 
 ## Keybindings
 

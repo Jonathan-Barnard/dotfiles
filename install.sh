@@ -19,8 +19,6 @@ DO_BREW=1
 DO_FONT=1
 FORCE=0
 
-WIN32YANK_VERSION="v0.1.1"
-
 # Everything this repo installs, as src:dest pairs.
 LINKS=(
   "zsh/zshrc:$HOME/.zshrc"
@@ -110,17 +108,16 @@ install_prereqs() {
   [[ "$PLATFORM" == "linux" ]] || return 0
 
   if ! command -v apt-get >/dev/null 2>&1; then
-    warn "apt-get not found — install build-essential, curl, file, git, zsh and unzip yourself"
+    warn "apt-get not found — install build-essential, curl, file, git and zsh yourself"
     return 0
   fi
 
   # build-essential/procps/curl/file/git are Homebrew's own requirements.
   # zsh is the login shell (Ubuntu does not ship it; macOS does).
-  # unzip is for win32yank.
   info "Installing prerequisites (needs sudo)…"
   run sudo apt-get update -qq
   run sudo apt-get install -y -qq \
-    build-essential procps curl file git zsh unzip locales
+    build-essential procps curl file git zsh locales
 
   # zshrc exports LANG=en_US.UTF-8; on a stock Ubuntu image it is not generated.
   if ! locale -a 2>/dev/null | grep -qix 'en_US.utf8'; then
@@ -190,46 +187,7 @@ install_packages() {
   ok "Packages up to date"
 }
 
-# ── 3. win32yank (WSL only) ──────────────────────────────────
-# Neovim's options.lua sets clipboard = "unnamedplus", which is identical to
-# the macOS config. That is only comfortable because win32yank is fast; the
-# clip.exe / powershell.exe route costs ~200ms on every put. Without it nvim
-# falls back to its own registers — nothing breaks, the clipboard just stops
-# being shared with Windows.
-install_win32yank() {
-  if [[ $IS_WSL -eq 0 ]]; then
-    skip "not WSL — nvim uses the system clipboard directly"
-    return 0
-  fi
-
-  if command -v win32yank.exe >/dev/null 2>&1; then
-    ok "win32yank already installed"
-    return 0
-  fi
-
-  if [[ $DRY_RUN -eq 1 ]]; then
-    skip "would install win32yank $WIN32YANK_VERSION to ~/.local/bin"
-    return 0
-  fi
-
-  local tmp url
-  tmp="$(mktemp -d)"
-  url="https://github.com/equalsraf/win32yank/releases/download/$WIN32YANK_VERSION/win32yank-x64.zip"
-
-  info "Installing win32yank $WIN32YANK_VERSION…"
-  if curl -fsSL "$url" -o "$tmp/win32yank.zip" \
-     && unzip -q -o "$tmp/win32yank.zip" win32yank.exe -d "$tmp"; then
-    mkdir -p "$HOME/.local/bin"
-    mv "$tmp/win32yank.exe" "$HOME/.local/bin/win32yank.exe"
-    chmod +x "$HOME/.local/bin/win32yank.exe"
-    ok "win32yank installed to ~/.local/bin"
-  else
-    warn "win32yank download failed — nvim will use its own registers instead"
-  fi
-  rm -rf "$tmp"
-}
-
-# ── 4. Symlinks ──────────────────────────────────────────────
+# ── 3. Symlinks ──────────────────────────────────────────────
 link() {
   local src="$DOTFILES_DIR/$1" dest="$2"
 
@@ -276,7 +234,7 @@ link_all() {
   return 0
 }
 
-# ── 5. Shell ─────────────────────────────────────────────────
+# ── 4. Shell ─────────────────────────────────────────────────
 set_default_shell() {
   local zsh_path
   zsh_path="$(command -v zsh || true)"
@@ -315,13 +273,8 @@ doctor() {
     warn "Open a new terminal (Homebrew's PATH may not be loaded yet) and re-check."
   fi
 
+  # The font lives on the Windows side, where this script cannot see it.
   if [[ $IS_WSL -eq 1 ]]; then
-    if command -v win32yank.exe >/dev/null 2>&1; then
-      ok "win32yank on PATH — nvim shares the Windows clipboard"
-    else
-      warn "win32yank not on PATH — nvim's clipboard won't reach Windows"
-    fi
-    # The font lives on the Windows side, where this script cannot see it.
     info "Nerd Font and colours are set in Windows Terminal — see windows/README.md"
   fi
 }
@@ -335,23 +288,20 @@ main() {
   info "Dotfiles: $DOTFILES_DIR"
 
   if [[ $DO_BREW -eq 1 ]]; then
-    header "1/6  Prerequisites"
+    header "1/5  Prerequisites"
     install_prereqs
-    header "2/6  Homebrew"
+    header "2/5  Homebrew"
     install_homebrew
-    header "3/6  Packages"
+    header "3/5  Packages"
     install_packages
   else
     warn "Skipping prerequisites, Homebrew and packages (--no-brew)"
   fi
 
-  header "4/6  Clipboard"
-  install_win32yank
-
-  header "5/6  Symlinks"
+  header "4/5  Symlinks"
   link_all
 
-  header "6/6  Default shell"
+  header "5/5  Default shell"
   set_default_shell
 
   header "Doctor"

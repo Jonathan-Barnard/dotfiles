@@ -25,16 +25,11 @@ grep -qi microsoft /proc/version 2>/dev/null || return 0
 # `open .` opens the current directory in Explorer, as it does on macOS.
 open() { explorer.exe "$(wslpath -w "${1:-.}")" 2>/dev/null || true; }
 
-# win32yank is what makes nvim's clipboard = "unnamedplus" usable here
-# (install.sh drops it in ~/.local/bin). clip.exe / powershell.exe are the
-# fallback: they work, but Get-Clipboard costs ~200ms a call.
-if command -v win32yank.exe &>/dev/null; then
-  alias pbcopy='win32yank.exe -i --crlf'
-  alias pbpaste='win32yank.exe -o --lf'
-else
-  alias pbcopy='clip.exe'
-  alias pbpaste='powershell.exe -NoProfile -Command "Get-Clipboard -Raw" | tr -d "\r"'
-fi
+# The macOS clipboard commands, via Windows' own. Get-Clipboard costs ~200ms
+# a call, which is fine at the prompt — it is only nvim, putting on every
+# keystroke, that would have felt it.
+alias pbcopy='clip.exe'
+alias pbpaste='powershell.exe -NoProfile -Command "Get-Clipboard -Raw" | tr -d "\r"'
 
 # Jump to the Windows user profile. USERPROFILE comes back with a trailing
 # CR from powershell, and wslpath turns C:\Users\… into /mnt/c/Users/….
