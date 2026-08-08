@@ -33,3 +33,32 @@ vim.api.nvim_create_autocmd("VimResized", {
   group = augroup("resize_splits"),
   command = "wincmd =",
 })
+
+-- Strip the editor chrome from :terminal buffers — none of it means
+-- anything over shell output — and start typing straight away.
+vim.api.nvim_create_autocmd("TermOpen", {
+  group = augroup("term_open"),
+  callback = function()
+    vim.opt_local.number = false
+    vim.opt_local.relativenumber = false
+    vim.opt_local.signcolumn = "no"
+    vim.opt_local.cursorline = false
+    vim.opt_local.list = false      -- listchars would mark up the output
+    vim.opt_local.scrolloff = 0     -- the global 8 makes a terminal jump
+    vim.cmd.startinsert()
+  end,
+})
+
+-- TermOpen only, not BufEnter: coming back to a terminal leaves you in
+-- normal mode so you can scroll back and yank.
+
+-- A clean `exit` closes its own split. A failure stays on screen showing
+-- [Process exited N] so you can read it.
+vim.api.nvim_create_autocmd("TermClose", {
+  group = augroup("term_close"),
+  callback = function(event)
+    if vim.v.event.status == 0 and vim.api.nvim_buf_is_valid(event.buf) then
+      pcall(vim.api.nvim_buf_delete, event.buf, { force = true })
+    end
+  end,
+})

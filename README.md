@@ -101,10 +101,16 @@ Leader is `Space`.
 | `⌥` arrows | Resize split — macOS keeps `Ctrl`+arrows for Mission Control |
 | `⇧H` / `⇧L` | Previous / next buffer |
 | `<leader>bd` | Delete buffer |
+| `<leader>tt` / `<leader>tv` / `<leader>tT` | Terminal in a bottom split / right split / new tab |
+| `<leader>tm` | Move the current window to its own tab |
+| `Esc Esc` | Leave terminal mode |
+| `gt` / `gT` | Next / previous tab |
 | `J` / `K` (visual) | Move the selection up/down |
 | `Esc` | Clear search highlight |
 
 Splits and their bindings deliberately mirror Ghostty's, so `⌘D` outside nvim and `<leader>sv` inside it do the same thing.
+
+Terminals are built-in `:terminal` rather than a plugin — every press opens a *new* shell, so when one turns out to be long-running, `<leader>tm` promotes it to its own tab and it stays there. A clean `exit` closes the split itself; a non-zero exit is left on screen. Ctrl+L, Ctrl+J, Ctrl+K and Alt+arrows are deliberately unmapped in terminal mode so they still belong to zsh — press `Esc Esc` first.
 
 ## The palette
 
@@ -128,7 +134,7 @@ Gruvbox Dark Hard, used identically by Ghostty, Starship, fzf, bat and zsh synta
 
 ### What's in the Neovim config
 
-Deliberately small — options, keymaps, a colourscheme, a statusline, a file tree and key hints, with lazy.nvim ready for whatever comes next. No LSP, treesitter or fuzzy finder yet.
+Deliberately small — options, keymaps, a colourscheme, a statusline, a file tree, terminals and key hints, with lazy.nvim ready for whatever comes next. No LSP, treesitter or fuzzy finder yet.
 
 No icon provider is installed, so every file in the tree shares one glyph — add `nvim-web-devicons` or `mini.icons` and per-filetype icons appear with no further config. netrw is disabled; neo-tree handles `nvim .` too.
 

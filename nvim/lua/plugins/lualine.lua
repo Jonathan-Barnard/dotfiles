@@ -52,6 +52,9 @@ return {
       options = {
         theme = theme,
         globalstatus = true, -- pairs with laststatus = 3
+        -- Tabs only exist here to park long-running terminals in, so
+        -- the tabline stays hidden until there's a second one.
+        always_show_tabline = false,
         -- U+E0B0 / U+E0B2, the same glyphs starship uses. The
         -- JetBrainsMono Nerd Font cask in the Brewfile provides them.
         section_separators = { left = "", right = "" },
@@ -73,6 +76,20 @@ return {
             "filename",
             path = 1, -- relative to cwd
             symbols = { modified = " ●", readonly = " 󰌾", unnamed = "[No Name]" },
+            -- A terminal buffer is named term://<cwd>//<pid>:/bin/zsh,
+            -- which path = 1 would print in full. Show the shell instead.
+            fmt = function(name)
+              if vim.bo.buftype ~= "terminal" then
+                return name
+              end
+              -- b:term_title starts out as that same term:// string and
+              -- only becomes useful once the program sets an OSC title.
+              local title = vim.b.term_title
+              if not title or title:find("^term://") then
+                title = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(0), ":t")
+              end
+              return " " .. title
+            end,
           },
         },
         lualine_x = {
@@ -87,6 +104,26 @@ return {
         lualine_z = {
           "progress",
           { "location", separator = { right = "" } },
+        },
+      },
+      -- lualine renders the whole tabline itself and colours it from the
+      -- theme above, so gruvbox's TabLine* groups never get drawn — no
+      -- overrides needed in colorscheme.lua.
+      tabline = {
+        lualine_a = {
+          {
+            "tabs",
+            mode = 2, -- number + name; a terminal tab reads "2 zsh"
+            path = 0,
+            -- The active tab picks up lualine_a's orange, so the tabline
+            -- and the statusline read as the same object. This component
+            -- draws separators *between* tabs from section_separators
+            -- above; a component-level `separator` would be ignored.
+            tabs_color = {
+              active = { fg = colors.fg0, bg = colors.orange, gui = "bold" },
+              inactive = { fg = colors.grey, bg = colors.bg1 },
+            },
+          },
         },
       },
       -- Only names under lualine/extensions/ are valid here.

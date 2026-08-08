@@ -30,6 +30,7 @@ return {
       spec = {
         { "<leader>b", group = "buffer", icon = { icon = "󰓩 ", color = "blue" } },
         { "<leader>s", group = "split", icon = { icon = " ", color = "green" } },
+        { "<leader>t", group = "terminal", icon = { icon = " ", color = "orange" } },
       },
 
       plugins = {

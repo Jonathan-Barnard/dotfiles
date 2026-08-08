@@ -50,4 +50,16 @@ map("v", ">", ">gv", "Indent right and keep selection")
 map("v", "p", '"_dP', "Paste without clobbering the register")
 
 -- ── Terminal ─────────────────────────────────────────────────
+-- Built-in :terminal, so every press is a *new* shell rather than
+-- one window you toggle. `+terminal` makes the split and the shell
+-- a single command. Park a long-running one in its own tab with
+-- <leader>tm, then switch tabs with gt / gT.
+map("n", "<leader>tt", "<cmd>15split +terminal<CR>", "Terminal: bottom split")
+map("n", "<leader>tv", "<cmd>vsplit +terminal<CR>", "Terminal: split right")
+map("n", "<leader>tT", "<cmd>tabnew +terminal<CR>", "Terminal: new tab")
+map("n", "<leader>tm", "<C-w>T", "Move window to a new tab")
+
+-- Only <Esc><Esc> is mapped in terminal mode: Ctrl+L (clear), Ctrl+J
+-- and Ctrl+K stay with zsh, as do Alt+arrows (word motions). Leave
+-- terminal mode first, then the usual <C-hjkl> / <M-arrows> apply.
 map("t", "<Esc><Esc>", "<C-\\><C-n>", "Leave terminal mode")
