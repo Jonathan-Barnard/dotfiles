@@ -1,78 +1,64 @@
--- ── automatic behaviours ───────────────────────────────────────────────────
-
-local augroup = function(name)
-  return vim.api.nvim_create_augroup("cfg_" .. name, { clear = true })
+-- ─────────────────────────────────────────────────────────────
+--  Autocommands
+-- ─────────────────────────────────────────────────────────────
+local function augroup(name)
+  return vim.api.nvim_create_augroup("dotfiles_" .. name, { clear = true })
 end
 
--- Briefly highlight whatever you just yanked, so you can see what you got.
--- vim.highlight was renamed vim.hl in 0.11; fall back for older versions.
+-- Briefly highlight whatever was just yanked.
 vim.api.nvim_create_autocmd("TextYankPost", {
   group = augroup("highlight_yank"),
   callback = function()
-    local hl = vim.hl or vim.highlight
-    hl.on_yank({ higroup = "Visual", timeout = 150 })
+    vim.hl.on_yank({ higroup = "IncSearch", timeout = 150 })
   end,
 })
 
--- Reopen a file where you left off.
+-- Reopen a file where you left it.
 vim.api.nvim_create_autocmd("BufReadPost", {
   group = augroup("last_position"),
   callback = function(event)
     local exclude = { "gitcommit", "gitrebase" }
-    if vim.tbl_contains(exclude, vim.bo[event.buf].filetype) then return end
+    if vim.tbl_contains(exclude, vim.bo[event.buf].filetype) then
+      return
+    end
     local mark = vim.api.nvim_buf_get_mark(event.buf, '"')
-    local line_count = vim.api.nvim_buf_line_count(event.buf)
-    if mark[1] > 0 and mark[1] <= line_count then
+    if mark[1] > 0 and mark[1] <= vim.api.nvim_buf_line_count(event.buf) then
       pcall(vim.api.nvim_win_set_cursor, 0, mark)
     end
   end,
 })
 
--- Create missing parent directories when saving a new file.
-vim.api.nvim_create_autocmd("BufWritePre", {
-  group = augroup("mkdir"),
-  callback = function(event)
-    if event.match:match("^%w%w+://") then return end
-    local file = vim.uv.fs_realpath(event.match) or event.match
-    vim.fn.mkdir(vim.fn.fnamemodify(file, ":p:h"), "p")
-  end,
-})
-
--- Let q close throwaway windows, rather than needing :q
-vim.api.nvim_create_autocmd("FileType", {
-  group = augroup("close_with_q"),
-  pattern = { "help", "man", "qf", "checkhealth", "lspinfo", "startuptime", "query" },
-  callback = function(event)
-    vim.bo[event.buf].buflisted = false
-    vim.keymap.set("n", "q", "<cmd>close<cr>", { buffer = event.buf, silent = true })
-  end,
-})
-
--- Prose settings for text filetypes: wrap at the window edge, spellcheck on.
-vim.api.nvim_create_autocmd("FileType", {
-  group = augroup("prose"),
-  pattern = { "markdown", "gitcommit", "text" },
-  callback = function()
-    vim.opt_local.wrap = true
-    vim.opt_local.linebreak = true
-    vim.opt_local.spell = true
-    vim.opt_local.spelllang = "en_gb"
-  end,
-})
-
--- Equalise split sizes when the terminal window is resized.
+-- Keep splits proportional when the terminal window is resized.
 vim.api.nvim_create_autocmd("VimResized", {
-  group = augroup("resize"),
-  command = "tabdo wincmd =",
+  group = augroup("resize_splits"),
+  command = "wincmd =",
 })
 
--- Close a terminal's window automatically when the shell exits cleanly,
--- rather than leaving a dead "[Process exited 0]" buffer behind.
+-- Strip the editor chrome from :terminal buffers — none of it means
+-- anything over shell output — and start typing straight away.
+vim.api.nvim_create_autocmd("TermOpen", {
+  group = augroup("term_open"),
+  callback = function()
+    vim.opt_local.number = false
+    vim.opt_local.relativenumber = false
+    vim.opt_local.signcolumn = "no"
+    vim.opt_local.cursorline = false
+    vim.opt_local.list = false      -- listchars would mark up the output
+    vim.opt_local.scrolloff = 0     -- the global 8 makes a terminal jump
+    vim.cmd.startinsert()
+  end,
+})
+
+-- TermOpen only, not BufEnter: coming back to a terminal leaves you in
+-- normal mode so you can scroll back and yank.
+
+-- A clean `exit` closes its own split. A failure stays on screen showing
+-- [Process exited N] so you can read it.
 vim.api.nvim_create_autocmd("TermClose", {
   group = augroup("term_close"),
   callback = function(event)
-    if vim.v.event.status == 0 then
-      pcall(vim.api.nvim_win_close, vim.fn.bufwinid(event.buf), false)
+    if vim.v.event.status == 0 and vim.api.nvim_buf_is_valid(event.buf) then
+      pcall(vim.api.nvim_buf_delete, event.buf, { force = true })
     end
   end,
 })

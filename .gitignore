@@ -1,5 +1,3 @@
-# ── save this as .gitignore in the repo root ───────────────────────────────
-
 # secrets and machine-specific overrides — never commit
 .zshrc.local
 *.local
@@ -12,24 +10,22 @@
 .zcompdump*
 .zcompcache/
 
-# fetched by the installers, not authored here
-zsh/plugins/
-bat/themes/
-
 # neovim plugin payload and state — hundreds of MB, all reproducible
 nvim/lazy/
-nvim/nvim-pack-lock.json
 nvim/spell/
 
-# backups the installers leave behind
+# backups the installer leaves behind
 .dotfiles-backup/
 *.bak
 *~
+*.swp
+*.swo
 
 # OS noise
 .DS_Store
 Thumbs.db
 desktop.ini
+.netrwhist
 
 # Do NOT ignore nvim/lazy-lock.json — that file pins your exact plugin
 # versions and is the thing that makes a fresh clone reproduce this setup.

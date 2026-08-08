@@ -1,12 +1,13 @@
--- ═══════════════════════════════════════════════════════════════════════════
---  Neovim entry point.
---  Each require below maps to a file in lua/config/. Read them in this order.
--- ═══════════════════════════════════════════════════════════════════════════
+-- ─────────────────────────────────────────────────────────────
+--  Neovim  ·  Gruvbox Dark Hard
+--  Matches ghostty/config and starship/starship.toml
+-- ─────────────────────────────────────────────────────────────
 
--- The leader key must be set before lazy.nvim loads, or plugin mappings that
--- use <leader> will bind to the wrong key.
+-- Leader must be set before lazy.nvim loads, or plugin mappings
+-- get bound against the old leader.
 vim.g.mapleader = " "
-vim.g.maplocalleader = "\\"
+vim.g.maplocalleader = " "
+vim.g.have_nerd_font = true
 
 require("config.options")
 require("config.keymaps")

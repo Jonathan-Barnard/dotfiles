@@ -1,128 +1,88 @@
--- ── key bindings ───────────────────────────────────────────────────────────
--- Leader is Space. Plugin-specific maps live with their plugin, in
--- lua/plugins/, so that they load only when that plugin does.
-
-local map = function(mode, lhs, rhs, desc, opts)
-  opts = vim.tbl_extend("force", { silent = true, desc = desc }, opts or {})
-  vim.keymap.set(mode, lhs, rhs, opts)
+-- ─────────────────────────────────────────────────────────────
+--  Keymaps  ·  leader is <Space>
+-- ─────────────────────────────────────────────────────────────
+local function map(mode, lhs, rhs, desc)
+  vim.keymap.set(mode, lhs, rhs, { desc = desc, silent = true })
 end
 
--- editing
-map("n", "<Esc>", "<cmd>nohlsearch<cr>", "Clear search highlight")
+-- ── General ──────────────────────────────────────────────────
+map("n", "<Esc>", "<cmd>nohlsearch<CR>", "Clear search highlight")
+map("n", "<leader>w", "<cmd>write<CR>", "Write file")
+map("n", "<leader>q", "<cmd>quit<CR>", "Quit window")
+map("n", "<leader>Q", "<cmd>quitall<CR>", "Quit all")
+map("n", "<leader>l", "<cmd>Lazy<CR>", "Lazy: plugin manager")
+map("n", "<leader>e", "<cmd>Neotree toggle<CR>", "Explorer: file tree")
 
--- keep the cursor centred when jumping around, much easier to follow
+-- ── Windows ──────────────────────────────────────────────────
+map("n", "<C-h>", "<C-w>h", "Go to left window")
+map("n", "<C-j>", "<C-w>j", "Go to lower window")
+map("n", "<C-k>", "<C-w>k", "Go to upper window")
+map("n", "<C-l>", "<C-w>l", "Go to right window")
+
+map("n", "<M-Up>", "<cmd>resize +2<CR>", "Increase window height")
+map("n", "<M-Down>", "<cmd>resize -2<CR>", "Decrease window height")
+map("n", "<M-Left>", "<cmd>vertical resize -2<CR>", "Decrease window width")
+map("n", "<M-Right>", "<cmd>vertical resize +2<CR>", "Increase window width")
+
+-- Mirrors the Ghostty split binds (⌘D / ⌘⇧D / ⌘⇧W / ⌘⇧=)
+map("n", "<leader>sv", "<cmd>vsplit<CR>", "Split right")
+map("n", "<leader>sh", "<cmd>split<CR>", "Split down")
+map("n", "<leader>sc", "<cmd>close<CR>", "Close split")
+map("n", "<leader>s=", "<C-w>=", "Equalise splits")
+
+-- ── Tabs ─────────────────────────────────────────────────────
+-- <Tab> is a prefix, never a mapping on its own, so h/l here read the
+-- same as <C-h>/<C-l> for windows and <S-h>/<S-l> for buffers. Capital
+-- H/L move the tab itself, like J/K move a visual selection.
+--
+-- <Tab> and <C-i> are the same byte in a legacy terminal, so this would
+-- normally cost you jumplist-forward. Ghostty speaks the kitty keyboard
+-- protocol and nvim ≥ 0.10 reads it, which keeps the two apart.
+map("n", "<Tab>h", "<cmd>tabprevious<CR>", "Previous tab")
+map("n", "<Tab>l", "<cmd>tabnext<CR>", "Next tab")
+map("n", "<Tab>n", "<cmd>tabnew<CR>", "New tab")
+map("n", "<Tab>q", "<cmd>tabclose<CR>", "Close tab")
+map("n", "<Tab>o", "<cmd>tabonly<CR>", "Close other tabs")
+map("n", "<Tab>m", "<C-w>T", "Move window to its own tab")
+map("n", "<Tab>H", "<cmd>tabmove -1<CR>", "Move tab left")
+map("n", "<Tab>L", "<cmd>tabmove +1<CR>", "Move tab right")
+
+-- The tabline numbers each tab, so jump straight to one. `silent!`
+-- because :tabnext 9 with fewer tabs open is an E16 rather than a no-op.
+-- Defined last so which-key's `order` sort keeps them below the rest.
+for i = 1, 9 do
+  map("n", "<Tab>" .. i, "<cmd>silent! tabnext " .. i .. "<CR>", "Go to tab " .. i)
+end
+
+-- ── Buffers ──────────────────────────────────────────────────
+map("n", "<S-h>", "<cmd>bprevious<CR>", "Previous buffer")
+map("n", "<S-l>", "<cmd>bnext<CR>", "Next buffer")
+map("n", "<leader>bd", "<cmd>bdelete<CR>", "Delete buffer")
+
+-- ── Moving around ────────────────────────────────────────────
+-- Keep the cursor centred so you don't lose your place.
 map("n", "<C-d>", "<C-d>zz", "Half page down")
 map("n", "<C-u>", "<C-u>zz", "Half page up")
 map("n", "n", "nzzzv", "Next search result")
 map("n", "N", "Nzzzv", "Previous search result")
 
--- move the selected lines up and down
-map("v", "J", ":m '>+1<cr>gv=gv", "Move selection down")
-map("v", "K", ":m '<-2<cr>gv=gv", "Move selection up")
-
--- stay in visual mode when indenting, so you can press < or > repeatedly
-map("v", "<", "<gv", "Outdent")
-map("v", ">", ">gv", "Indent")
-
--- save
-map("n", "<leader>w", "<cmd>write<cr>", "Save file")
-map("n", "<leader>W", "<cmd>wall<cr>", "Save all files")
-
--- quit
-map("n", "<leader>q", "<cmd>quit<cr>", "Quit window")
-map("n", "<leader>Q", "<cmd>qall!<cr>", "Quit everything, discarding changes")
-
--- copies
-map({ "n", "v" }, "<leader>y", '"+y', "Yank to Windows clipboard")
-map("n", "<leader>Y", '"+Y', "Yank line to Windows clipboard")
-
--- pastes
-map({ "n", "v" }, "<leader>p", '"+p', "Paste from Windows clipboard")
-
--- paste over a selection without losing what you had yanked
+-- ── Visual mode ──────────────────────────────────────────────
+map("v", "J", ":m '>+1<CR>gv=gv", "Move selection down")
+map("v", "K", ":m '<-2<CR>gv=gv", "Move selection up")
+map("v", "<", "<gv", "Indent left and keep selection")
+map("v", ">", ">gv", "Indent right and keep selection")
 map("v", "p", '"_dP', "Paste without clobbering the register")
 
--- splits
-map("n", "<leader>-", "<cmd>split<cr>", "Split horizontally")
-map("n", "<leader>|", "<cmd>vsplit<cr>", "Split vertically")
+-- ── Terminal ─────────────────────────────────────────────────
+-- Built-in :terminal, so every press is a *new* shell rather than
+-- one window you toggle. `+terminal` makes the split and the shell
+-- a single command. Park a long-running one in its own tab with
+-- <Tab>m, then walk tabs with <Tab>h / <Tab>l.
+map("n", "<leader>tt", "<cmd>15split +terminal<CR>", "Terminal: bottom split")
+map("n", "<leader>tv", "<cmd>vsplit +terminal<CR>", "Terminal: split right")
+map("n", "<leader>tT", "<cmd>tabnew +terminal<CR>", "Terminal: new tab")
 
--- window moves
--- window navigation, same keys as vim splits everywhere else
-map("n", "<C-h>", "<C-w>h", "Go to left window")
-map("n", "<C-j>", "<C-w>j", "Go to window below")
-map("n", "<C-k>", "<C-w>k", "Go to window above")
-map("n", "<C-l>", "<C-w>l", "Go to right window")
-
--- window sizing
-map("n", "<C-Up>", "<cmd>resize +2<cr>", "Taller window")
-map("n", "<C-Down>", "<cmd>resize -2<cr>", "Shorter window")
-map("n", "<C-Left>", "<cmd>vertical resize -2<cr>", "Narrower window")
-map("n", "<C-Right>", "<cmd>vertical resize +2<cr>", "Wider window")
-
--- window rearranging: these all wrap plain vim <C-w> commands, they just
--- give them a memorable, which-key-discoverable home
-map("n", "<leader>mh", "<C-w>H", "Move window to far left")
-map("n", "<leader>mj", "<C-w>J", "Move window to bottom")
-map("n", "<leader>mk", "<C-w>K", "Move window to top")
-map("n", "<leader>ml", "<C-w>L", "Move window to far right")
-map("n", "<leader>mr", "<C-w>r", "Rotate windows")
-map("n", "<leader>mx", "<C-w>x", "Swap window with next")
-map("n", "<leader>mo", "<C-w>o", "Maximise window (close others)")
-map("n", "<leader>m=", "<C-w>=", "Equalise window sizes")
-
--- zoom the current window to fill the tab, press again to restore. Zoom
--- state is tracked per-tab so it doesn't leak across tab pages.
-local function toggle_zoom()
-  if vim.t.zoomed then
-    vim.cmd.wincmd("=")
-    vim.t.zoomed = false
-  else
-    vim.cmd.wincmd("_")
-    vim.cmd.wincmd("|")
-    vim.t.zoomed = true
-  end
-end
-map("n", "<leader>z", toggle_zoom, "Toggle zoom on window")
-
--- tabs, same h=previous/l=next convention as the buffer cycling below
-map("n", "<leader><Tab>n", "<cmd>tabnew<cr>", "New tab")
-map("n", "<leader><Tab>c", "<cmd>tabclose<cr>", "Close tab")
-map("n", "<leader><Tab>o", "<cmd>tabonly<cr>", "Close other tabs")
-map("n", "<leader><Tab>h", "<cmd>tabprevious<cr>", "Previous tab")
-map("n", "<leader><Tab>l", "<cmd>tabnext<cr>", "Next tab")
-
--- buffers
-map("n", "<S-h>", "<cmd>bprevious<cr>", "Previous buffer")
-map("n", "<S-l>", "<cmd>bnext<cr>", "Next buffer")
-map("n", "<leader>bb", "<cmd>b#<cr>", "Switch to last buffer")
-map("n", "<leader>bd", "<cmd>bdelete<cr>", "Close buffer")
-map("n", "<leader>bD", "<cmd>bdelete!<cr>", "Close buffer, discarding changes")
-
-local function close_other_buffers()
-  local current = vim.api.nvim_get_current_buf()
-  for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-    if buf ~= current and vim.bo[buf].buflisted then vim.api.nvim_buf_delete(buf, {}) end
-  end
-end
-map("n", "<leader>bo", close_other_buffers, "Close other buffers")
-
--- term: Esc twice to get back to normal mode
-map("t", "<Esc><Esc>", "<C-\\><C-n>", "Exit terminal mode")
-
--- A fresh docked terminal every time: split along the bottom and spawn a
--- new shell. Quit it like any other window (<leader>q) when you're done
--- with it, or <C-w>T to break it out into its own tab if you want it to
--- keep running.
-local function open_terminal()
-  vim.cmd("split")
-  vim.cmd.terminal()
-  vim.cmd.startinsert()
-end
-map("n", "<leader>tt", open_terminal, "Open a new terminal (docked at bottom)")
-
--- lua edit: quick access to this config
-map("n", "<leader>,", "<cmd>edit $MYVIMRC<cr>", "Edit init.lua")
-
--- diagnostics
-map("n", "<leader>dd", vim.diagnostic.open_float, "Show diagnostic under cursor")
-map("n", "<leader>dl", vim.diagnostic.setloclist, "Diagnostics to location list")
+-- Only <Esc><Esc> is mapped in terminal mode: Ctrl+L (clear), Ctrl+J
+-- and Ctrl+K stay with zsh, as do Alt+arrows (word motions). Leave
+-- terminal mode first, then the usual <C-hjkl> / <M-arrows> apply.
+map("t", "<Esc><Esc>", "<C-\\><C-n>", "Leave terminal mode")

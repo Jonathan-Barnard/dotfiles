@@ -1,0 +1,84 @@
+{
+    "//": "Windows Terminal · Gruvbox Dark Hard — translated from the macOS repo's ghostty/config.",
+    "//1": "This is a reference to paste from, not a file to copy over your settings.json:",
+    "//2": "Windows Terminal rewrites that file itself and its profile GUIDs are specific to",
+    "//3": "your machine. Merge the three blocks below into the matching keys. See README.md.",
+
+    "copyOnSelect": true,
+    "copyFormatting": "none",
+
+    "profiles": {
+        "defaults": {
+            "colorScheme": "Gruvbox Dark Hard",
+            "font": {
+                "face": "JetBrainsMono Nerd Font",
+                "size": 14,
+                "weight": "normal"
+            },
+            "padding": "14, 12, 14, 12",
+            "opacity": 95,
+            "useAcrylic": false,
+            "cursorShape": "filledBox",
+            "scrollbarState": "hidden",
+            "snapOnInput": true,
+            "historySize": 32767,
+            "antialiasingMode": "grayscale"
+        }
+    },
+
+    "schemes": [
+        {
+            "name": "Gruvbox Dark Hard",
+
+            "background": "#1D2021",
+            "foreground": "#EBDBB2",
+            "cursorColor": "#FE8019",
+            "selectionBackground": "#504945",
+
+            "black": "#282828",
+            "red": "#CC241D",
+            "green": "#98971A",
+            "yellow": "#D79921",
+            "blue": "#458588",
+            "purple": "#B16286",
+            "cyan": "#689D6A",
+            "white": "#A89984",
+
+            "brightBlack": "#928374",
+            "brightRed": "#FB4934",
+            "brightGreen": "#B8BB26",
+            "brightYellow": "#FABD2F",
+            "brightBlue": "#83A598",
+            "brightPurple": "#D3869B",
+            "brightCyan": "#8EC07C",
+            "brightWhite": "#EBDBB2"
+        }
+    ],
+
+    "//keys": [
+        "Ghostty's super+ becomes ctrl+shift+ here. Terminals send ctrl+shift+X",
+        "distinctly from ctrl+X, so none of these reach Neovim. Checked against",
+        "nvim/lua/config/keymaps.lua: <C-h/j/k/l>, <C-d>, <C-u> and <M-arrow>",
+        "are all left alone, so window navigation and Option-resize still work."
+    ],
+    "keybindings": [
+        { "keys": "ctrl+shift+d", "command": { "action": "splitPane", "split": "right", "splitMode": "duplicate" } },
+        { "keys": "ctrl+shift+s", "command": { "action": "splitPane", "split": "down",  "splitMode": "duplicate" } },
+        { "keys": "ctrl+shift+w", "command": { "action": "closePane" } },
+
+        { "keys": "ctrl+alt+left",  "command": { "action": "moveFocus", "direction": "left" } },
+        { "keys": "ctrl+alt+right", "command": { "action": "moveFocus", "direction": "right" } },
+        { "keys": "ctrl+alt+up",    "command": { "action": "moveFocus", "direction": "up" } },
+        { "keys": "ctrl+alt+down",  "command": { "action": "moveFocus", "direction": "down" } },
+
+        { "keys": "ctrl+shift+t",     "command": { "action": "newTab" } },
+        { "keys": "ctrl+shift+left",  "command": { "action": "prevTab" } },
+        { "keys": "ctrl+shift+right", "command": { "action": "nextTab" } },
+
+        { "keys": "ctrl+plus",  "command": { "action": "adjustFontSize", "delta": 1 } },
+        { "keys": "ctrl+minus", "command": { "action": "adjustFontSize", "delta": -1 } },
+        { "keys": "ctrl+0",     "command": { "action": "resetFontSize" } },
+
+        { "keys": "ctrl+shift+,", "command": { "action": "openSettings", "target": "settingsFile" } }
+    ]
+}
