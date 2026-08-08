@@ -98,7 +98,7 @@ Leader is `Space`.
 | `Ctrl+H/J/K/L` | Move between splits |
 | `<leader>sv` / `<leader>sh` | Split right / down |
 | `<leader>sc` / `<leader>s=` | Close split / equalise |
-| `Ctrl+`arrows | Resize split |
+| `⌥` arrows | Resize split — macOS keeps `Ctrl`+arrows for Mission Control |
 | `⇧H` / `⇧L` | Previous / next buffer |
 | `<leader>bd` | Delete buffer |
 | `J` / `K` (visual) | Move the selection up/down |
