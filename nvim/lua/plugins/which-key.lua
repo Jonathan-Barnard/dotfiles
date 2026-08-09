@@ -31,6 +31,9 @@ return {
       -- no two groups share a symbol (see its lua/which-key/icons.lua).
       spec = {
         { "<leader>b", group = "buffer", icon = { icon = "󰈔 ", color = "blue" } },
+        -- <leader>cr and <leader>cp are added buffer-locally by lua/plugins/lsp.lua,
+        -- so they only appear in a Rust or Python file.
+        { "<leader>c", group = "code", icon = { icon = " ", color = "cyan" } },
         { "<leader>s", group = "split", icon = { icon = " ", color = "green" } },
         { "<leader>t", group = "terminal", icon = { icon = " ", color = "orange" } },
         { "<Tab>", group = "tab", icon = { icon = "󰓩 ", color = "purple" } },
@@ -40,6 +43,7 @@ return {
         marks = true,
         registers = true,
         spelling = { enabled = true, suggestions = 20 },
+        -- stylua: ignore start
         presets = {
           operators = true,    -- d, y, c …
           motions = true,
@@ -50,6 +54,7 @@ return {
           g = true,
         },
       },
+      -- stylua: ignore end
 
       icons = {
         -- have_nerd_font is set in init.lua; JetBrainsMono Nerd Font

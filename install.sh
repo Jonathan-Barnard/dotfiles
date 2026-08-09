@@ -327,7 +327,8 @@ set_default_shell() {
 # ── Post-install checks ──────────────────────────────────────
 doctor() {
   local missing=() tool
-  for tool in zsh starship nvim eza bat fd rg fzf zoxide git; do
+  for tool in zsh starship nvim eza bat fd rg fzf zoxide git \
+              uv ruff basedpyright lua-language-server stylua; do
     command -v "$tool" >/dev/null 2>&1 || missing+=("$tool")
   done
 
@@ -336,6 +337,21 @@ doctor() {
   else
     warn "Not found on PATH: ${missing[*]}"
     warn "Open a new terminal (Homebrew's PATH may not be loaded yet) and re-check."
+  fi
+
+  # Rust is deliberately not in the Brewfile — see the comment there. rustup
+  # symlinks a `rust-analyzer` shim into ~/.cargo/bin whether or not the
+  # component is installed, so `command -v` says yes and the binary then
+  # fails with "Unknown binary". Ask the binary, not the PATH.
+  if command -v rustup >/dev/null 2>&1; then
+    if rust-analyzer --version >/dev/null 2>&1; then
+      ok "rust-analyzer matches the active Rust toolchain"
+    else
+      warn "rust-analyzer missing — nvim will have no Rust LSP. Fix with:"
+      warn "  rustup component add rust-analyzer"
+    fi
+  else
+    info "No rustup — install from https://rustup.rs if you want Rust in nvim"
   fi
 
   # Neovim's clipboard = "unnamedplus" needs a provider on desktop Linux.

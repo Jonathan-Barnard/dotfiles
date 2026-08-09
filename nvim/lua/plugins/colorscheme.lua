@@ -4,6 +4,11 @@
 --  ghostty/config. Leave transparent_mode off so Ghostty's
 --  background-opacity applies evenly to shell and editor.
 -- ─────────────────────────────────────────────────────────────
+
+-- A flat table of highlight assignments with the comments aligned into a
+-- column. stylua: ignore only applies to whole statements, and the whole
+-- file is one `return`, so the exemption has to sit here.
+-- stylua: ignore
 return {
   {
     "ellisonleao/gruvbox.nvim",

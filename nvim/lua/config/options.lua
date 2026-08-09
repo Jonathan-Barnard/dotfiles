@@ -3,6 +3,11 @@
 -- ─────────────────────────────────────────────────────────────
 local opt = vim.opt
 
+-- This file is a flat list of assignments with the comments aligned into a
+-- column, which is the only thing stylua would change here. Nothing else in
+-- it needs formatting, so the whole body opts out.
+-- stylua: ignore start
+
 -- ── UI ───────────────────────────────────────────────────────
 opt.number = true
 opt.relativenumber = true
@@ -18,6 +23,14 @@ opt.showmode = false            -- lualine already shows the mode
 opt.laststatus = 3              -- one statusline for the whole window
 opt.pumheight = 10
 opt.winborder = "rounded"       -- matches FZF_DEFAULT_OPTS --border=rounded
+
+-- ── Completion ───────────────────────────────────────────────
+-- 0.12 completes in insert mode on its own, so there's no nvim-cmp or
+-- blink here. 'complete' stays at its default globally and is set per
+-- buffer on LspAttach — no reason for every buffer to scan omnifunc.
+opt.autocomplete = true
+opt.autocompletedelay = 50      -- 0 pops the menu up mid-keystroke
+opt.completeopt = "menu,menuone,popup,fuzzy,noselect"
 
 opt.list = true
 opt.listchars = { tab = "󰇘 ", trail = "·", nbsp = "␣", extends = "›", precedes = "‹" }
@@ -52,3 +65,5 @@ opt.swapfile = false
 opt.backup = false
 opt.updatetime = 250
 opt.timeoutlen = 400
+
+-- stylua: ignore end

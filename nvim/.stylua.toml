@@ -1,0 +1,10 @@
+# stylua — matches the config it formats rather than the other way round.
+# Without this stylua defaults to tabs at width 4 and rewrites all 14 files.
+#
+# What it still wants to change is the column-aligned trailing comments in
+# options.lua and friends. Those are wrapped in `-- stylua: ignore start/end`
+# where they appear, so alignment survives format-on-save.
+indent_type = "Spaces"
+indent_width = 2
+column_width = 100
+quote_style = "AutoPreferDouble"

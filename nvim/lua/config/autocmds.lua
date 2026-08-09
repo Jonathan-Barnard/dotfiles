@@ -43,8 +43,10 @@ vim.api.nvim_create_autocmd("TermOpen", {
     vim.opt_local.relativenumber = false
     vim.opt_local.signcolumn = "no"
     vim.opt_local.cursorline = false
+    -- stylua: ignore start
     vim.opt_local.list = false      -- listchars would mark up the output
     vim.opt_local.scrolloff = 0     -- the global 8 makes a terminal jump
+    -- stylua: ignore end
     vim.cmd.startinsert()
   end,
 })
